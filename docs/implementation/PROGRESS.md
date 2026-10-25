@@ -4,7 +4,25 @@ Legend: `[✓]` completed and verified · `[→]` in progress · `[ ]` pending �
 
 ## Current state (2026-10-25)
 
-**Loop 3 (errors + auth) complete and verified locally and in CI. Next: L4 pantry CRUD + lifecycle events.**
+**Loop 4 (pantry) complete and verified locally; CI result recorded below. Next: L5 daily expiry scheduler + alerts.**
+
+### Loop 4 — Pantry items + lifecycle events (2026-10-25) `[✓]`
+
+- `pantry/PantryController` + `PantryService`: `GET/POST /api/v1/pantry-items`, `GET/PATCH/DELETE /{itemId}`, `POST /{itemId}/events` (D-025, D-026)
+- `pantry/Expiry`: the single A-01 rule (`expired` / `expiring_soon` today…today+3 / `ok` / `none`) — reused by the L5 scheduler; items return `expiryStatus` and `daysUntilExpiry`
+- `pantry/Vocabulary`: category/unit/event codes matching the DB domains
+- Config `pantrychef.timezone` (`APP_TIMEZONE`, default Asia/Kolkata) and `pantrychef.currency` (`APP_CURRENCY`, default INR)
+- `ApiException.invalidField` for cross-field validation; registration's byte-length check now uses it
+
+| Check | Result |
+|---|---|
+| `mvnw.cmd -B verify` | BUILD SUCCESS — 38 tests, 0 failures (new: PantryTests 11, ExpiryTests 2) |
+| Mutation: row lock removed | `concurrentEventsNeverDriveStockNegative` failed (DB check blocked negatives as 500s) → restored |
+| Mutation: owner filter removed | `anotherUsersItemIsInvisibleAndImmutable` failed → restored |
+| Real run (compose DB + jar, curl) | create 201 (INR, expiring_soon) → used 201 → same `Idempotency-Key` 200 `replayed:true` → finished 201 → delete 204 → list `[]`; DB holds 2 events (used 1, finished 1) |
+| Regression: frontend lint/test; ai-service pytest | pass |
+
+Covered: QA-003 (items/events), QA-004, QA-005, QA-006 (event distinction; savings figures in L9), QA-019, QA-020 (API part).
 
 ### Loop 3 — Error envelope + accounts (2026-10-25) `[✓]`
 
@@ -81,7 +99,8 @@ Not run yet: deliberate-failure CI run (QA-024, planned for L12); pull-request t
 - [✓] L1 Foundation (see below)
 - [✓] L2 Schema v1 (see below)
 - [✓] L3 Error envelope + auth (see below)
-- [ ] L4 Pantry CRUD + lifecycle events — next
+- [✓] L4 Pantry CRUD + lifecycle events (see below)
+- [ ] L5 Expiry scheduler + alerts — next
 - [✓] A-01…A-08 approved by the user (2026-10-25); B-04 push authorization granted
 - [!] B-01 recipe dataset + license (blocks real RAG/plans/nutrition/cuisine)
 
@@ -107,7 +126,8 @@ Tests executed: **none** (no code exists). Git commits/pushes: **none**.
 | 2026-10-25 | Loop 1 foundation scaffold + CI |
 | 2026-10-25 | Loop 2 schema v1, local DB, `.env.example` |
 | 2026-10-25 | Loop 3 error envelope, request IDs, accounts + JWT |
+| 2026-10-25 | Loop 4 pantry CRUD, lifecycle events, expiry rule |
 
 ## Next safe action
 
-L4: pantry CRUD (`/api/v1/pantry-items`, owner-scoped, A-04 vocab, `APP_CURRENCY=INR` default, optimistic `version`, soft delete) and lifecycle events (`used`/`finished`/`discarded`, atomic stock update, idempotency key, no negative stock). Cross-user tests with two users on every route.
+L5: daily `@Scheduled` expiry scan (APP_TIMEZONE midnight + on demand in tests with a fixed `Clock`) that reconciles `expiry_alerts` idempotently (one open alert per item; resolve when stock hits 0, item deleted, or date moves out of the window); `GET /api/v1/expiry-alerts` urgency-sorted, owner-scoped; optional resolve route; sanitized count logging.

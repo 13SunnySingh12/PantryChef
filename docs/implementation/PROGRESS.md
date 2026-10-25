@@ -4,7 +4,7 @@ Legend: `[✓]` completed and verified · `[→]` in progress · `[ ]` pending �
 
 ## Current state (2026-10-25)
 
-**Loop 3 (errors + auth) complete and verified locally; CI result recorded below. Next: L4 pantry CRUD + lifecycle events.**
+**Loop 3 (errors + auth) complete and verified locally and in CI. Next: L4 pantry CRUD + lifecycle events.**
 
 ### Loop 3 — Error envelope + accounts (2026-10-25) `[✓]`
 
@@ -23,6 +23,8 @@ Legend: `[✓]` completed and verified · `[→]` in progress · `[ ]` pending �
 | Real run without `JWT_SIGNING_SECRET` | Startup refused ("Could not resolve placeholder 'JWT_SIGNING_SECRET'") |
 | Real-run log grep for token, signing secret, DB password, user password | 0 matches; no generated default password |
 | Regression: frontend lint/test; ai-service pytest | pass |
+
+Commits `76cdb96` (feat), `2b739c8` (docs), pushed. CI run [40177427582](https://github.com/13SunnySingh12/PantryChef/actions/runs/40177427582) on `2b739c8`: **success** (all three jobs).
 
 Covered tests: QA-001, QA-002, QA-021 (missing/garbage/forged/expired/wrong-issuer/unknown-subject tokens), QA-003 identity part. Not run: CORS (no browser client yet; L11 decides proxy vs CORS).
 

@@ -31,7 +31,7 @@ Status values: **Not implemented** · **Implemented (code evidence)** · **Execu
 | FR-023 | P0 | In-app alerts only [§2, Out of scope] | L5 | review: no email/push/SMS deps | — | — | Not implemented |
 | FR-024 | P0 | Input validation, safe stable errors | L2–L9 | QA-004, QA-019, QA-020 | — | — | Not implemented |
 | FR-025 | P0 | Paid-free, fixture-based tests | L1–L11 | QA-018, QA-023 | — | — | Not implemented |
-| FR-026 | P0 | CI on push + PR, no deploy [§9] | L11 | QA-024 | B-04 | — | Not implemented |
+| FR-026 | P0 | CI on push + PR, no deploy [§9] | L1, L12 | QA-024 | — | `.github/workflows/ci.yml` | Implemented; push run 40175915022 passed; PR trigger + deliberate failure Not Run |
 
 ## Non-functional requirements
 

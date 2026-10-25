@@ -24,7 +24,7 @@ Node.js 24, JDK 21, Python 3.12, Docker (local database and backend tests).
 cp .env.example .env
 ```
 
-Edit `.env` and set your own local passwords (it is git-ignored), then start PostgreSQL 17 + pgvector on `127.0.0.1:5440`:
+Edit `.env` and set your own local passwords and a `JWT_SIGNING_SECRET` of at least 32 random bytes (the file is git-ignored; the backend refuses to start without the secret). Then start PostgreSQL 17 + pgvector on `127.0.0.1:5440`:
 
 ```bash
 docker compose up -d

@@ -9,14 +9,11 @@ import java.util.UUID;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 // Verifies the V1 migration applies cleanly and that the database itself rejects invalid data (NFR-010, QA-025).
-@SpringBootTest
-@Import(TestcontainersConfiguration.class)
+@PantryChefTest
 class SchemaConstraintsTests {
 
 	@Autowired

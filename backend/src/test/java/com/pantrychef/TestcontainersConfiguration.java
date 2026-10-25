@@ -9,6 +9,9 @@ import org.testcontainers.utility.DockerImageName;
 @TestConfiguration(proxyBeanMethods = false)
 public class TestcontainersConfiguration {
 
+	/** Used only by tests; never a real deployment key. */
+	public static final String TEST_JWT_SECRET = "test-only-jwt-signing-key-not-used-outside-tests";
+
 	@Bean
 	@ServiceConnection
 	PostgreSQLContainer postgres() {

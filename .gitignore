@@ -1,0 +1,41 @@
+# Secrets and local config (only placeholder templates are tracked)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Node / frontend
+node_modules/
+frontend/dist/
+frontend/coverage/
+
+# Java / backend
+backend/target/
+*.class
+
+# Python / ai-service
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local data, models and caches (licensed data/model artifacts are never committed)
+ai-service/data/
+ai-service/models/
+*.joblib
+*.onnx
+*.safetensors
+
+# Analysis output, logs, IDE and OS files
+graphify-out/
+*.log
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db

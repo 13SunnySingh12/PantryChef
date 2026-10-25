@@ -7,13 +7,13 @@ Status values: **Not implemented** · **Implemented (code evidence)** · **Execu
 | ID | Pri | Requirement [PantryChef.md] | Loop | Planned tests | Depends on | Code | Status |
 |---|---|---|---|---|---|---|---|
 | FR-001 | P0 | Register/login with JWT [§8] | L3 | QA-001, QA-002, QA-021 | — | `backend/…/auth/AuthController.java`, `security/SecurityConfig.java` | Executed and passed (`AuthTests`); limitation D-023 |
-| FR-002 | P0 | Per-user data isolation [§8] | L3–L9 | QA-003, QA-021 | — | `security/CurrentUser.java`; owner-scoped SQL in `pantry/PantryService.java` | Auth + pantry items/events passed (`AuthTests`, `PantryTests`); alerts/prefs/plans/dashboard pending L5–L9 |
+| FR-002 | P0 | Per-user data isolation [§8] | L3–L9 | QA-003, QA-021 | — | `security/CurrentUser.java`; owner-scoped SQL in `pantry/PantryService.java` | Auth, pantry items/events, alerts passed (`AuthTests`, `PantryTests`, `ExpiryAlertTests`); prefs/plans/dashboard pending L6–L9 |
 | FR-003 | P0 | Pantry CRUD [§1] | L4 | QA-004, QA-019 | — | `pantry/PantryController.java`, `PantryService.java` | Executed and passed (`PantryTests`) |
 | FR-004 | P0 | Categories incl. explicit `other` [§1] | L4 | QA-004 | — | `pantry/Vocabulary.java`, `category_code` domain | Executed and passed |
 | FR-005 | P0 | used/finished/discarded events [§1] | L4 | QA-005, QA-006 | — | `PantryService.recordEvent` | Executed and passed (atomic, idempotent, concurrent tests); savings side of QA-006 pending L9 |
-| FR-006 | P0 | Daily idempotent expiry scan [§2] | L5 | QA-007 | A-01 | — | Not implemented |
-| FR-007 | P0 | Flag expired items [§2] | L5 | QA-008 | A-01, A-02 | — | Not implemented |
-| FR-008 | P0 | In-app alerts by urgency, reconciled [§2] | L5 | QA-007 | A-01 | — | Not implemented |
+| FR-006 | P0 | Daily idempotent expiry scan [§2] | L5 | QA-007 | — | `alerts/ExpiryAlerts.java` (`@Scheduled` + startup) | Executed and passed (`ExpiryAlertTests`: reruns, parallel scans); startup scan verified in a real run |
+| FR-007 | P0 | Flag expired items [§2] | L5 | QA-008 | — | `pantry/Expiry.java`, `expiryStatus` on items, `expired` alerts | Executed and passed (`ExpiryTests`, `ExpiryAlertTests`) |
+| FR-008 | P0 | In-app alerts by urgency, reconciled [§2] | L5 | QA-007 | — | `alerts/ExpiryAlertController.java` | Executed and passed (sorted, owner-scoped, reconciled on every change) |
 | FR-009 | P0 | Pantry-based RAG suggestions [§3] | L7 | QA-009 | B-01, B-02 | — | Not implemented (real data Blocked by B-01) |
 | FR-010 | P0 | Citations to real stored recipes; versioned idempotent indexing [§3] | L7 | QA-009, QA-025 | B-01, B-02 | — | Not implemented (Blocked by B-01) |
 | FR-011 | P0 | Diet filters everywhere [§5] | L6–L8 | QA-010, QA-011 | A-08 | — | Not implemented |
@@ -28,7 +28,7 @@ Status values: **Not implemented** · **Implemented (code evidence)** · **Execu
 | FR-020 | P1 | Money-saved metric [§7] | L9 | QA-013 | A-03, A-06 | — | Not implemented |
 | FR-021 | P1 | Weekly nutrition summary [§7] | L9 | QA-014 | B-01 (nutrition source) | — | Not implemented |
 | FR-022 | P1 | Bar/line charts with summaries [§7] | L9 | QA-014 | — | — | Not implemented |
-| FR-023 | P0 | In-app alerts only [§2, Out of scope] | L5 | review: no email/push/SMS deps | — | — | Not implemented |
+| FR-023 | P0 | In-app alerts only [§2, Out of scope] | L5 | review: no email/push/SMS deps | — | `GET /api/v1/expiry-alerts` only | Implemented; dependency review: no mail/push/SMS library in `pom.xml` |
 | FR-024 | P0 | Input validation, safe stable errors | L2–L9 | QA-004, QA-019, QA-020 | — | `web/ApiErrors.java`, `web/RequestIdFilter.java`, DTO + DB checks | Auth + pantry passed (incl. NaN/Infinity/invalid date → 400, SQL/markup stored as data); UI rendering half of QA-020 pending L11 |
 | FR-025 | P0 | Paid-free, fixture-based tests | L1–L11 | QA-018, QA-023 | — | — | Not implemented |
 | FR-026 | P0 | CI on push + PR, no deploy [§9] | L1, L12 | QA-024 | — | `.github/workflows/ci.yml` | Implemented; push run 40175915022 passed; PR trigger + deliberate failure Not Run |

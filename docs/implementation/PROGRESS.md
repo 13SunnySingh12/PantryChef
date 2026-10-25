@@ -4,7 +4,25 @@ Legend: `[✓]` completed and verified · `[→]` in progress · `[ ]` pending �
 
 ## Current state (2026-10-25)
 
-**Loop 4 (pantry) complete and verified locally and in CI. Next: L5 daily expiry scheduler + alerts.**
+**Loop 5 (expiry alerts) complete and verified locally; CI result recorded below. Next: L6 dietary/allergen preferences + eligibility predicate.**
+
+### Loop 5 — Daily expiry scan + in-app alerts (2026-10-25) `[✓]`
+
+- `alerts/ExpiryAlerts`: set-based, idempotent reconciliation; `@Scheduled` daily 00:05 APP_TIMEZONE (`pantrychef.expiry.cron` overridable) + one scan at startup; per-item reconciliation called from every pantry change in the same transaction (D-027)
+- `alerts/ExpiryAlertController`: `GET /api/v1/expiry-alerts` — open alerts with item name, remaining stock, expiry date, days until expiry; earliest expiry first; owner-scoped
+- `@EnableScheduling`; `PantryService` now takes "today" from `ExpiryAlerts.today()` (one date source)
+
+| Check | Result |
+|---|---|
+| `mvnw.cmd -B verify` | BUILD SUCCESS — 43 tests, 0 failures (new: ExpiryAlertTests 5) |
+| Boundary scan at a fixed date (2031-03-10), run 3× | expired (−1 day), expiring_soon (today, +3 days); none for +4, no expiry, finished, deleted; one row per item |
+| 6 parallel scans | still one alert row |
+| Mutation: no resolve on type change | `alertMovesFromSoonToExpiredKeepingHistory` failed → restored |
+| Mutation: no reconcile after stock events | `pantryChangesReconcileAlertsImmediately` failed → restored |
+| Real run (compose DB + jar) | item created → alert immediately; item inserted directly in the DB while the app was stopped → restart log "Expiry scan for 2026-10-25: 0 alerts resolved, 1 created" → list shows expired Bread (−1) before Paneer (+1); no secrets in logs |
+| Regression: frontend lint/test; ai-service pytest | pass |
+
+Covered: QA-007, QA-008, QA-003 (alerts). Not built: optional resolve route API-012 (D-027).
 
 ### Loop 4 — Pantry items + lifecycle events (2026-10-25) `[✓]`
 
@@ -102,7 +120,8 @@ Not run yet: deliberate-failure CI run (QA-024, planned for L12); pull-request t
 - [✓] L2 Schema v1 (see below)
 - [✓] L3 Error envelope + auth (see below)
 - [✓] L4 Pantry CRUD + lifecycle events (see below)
-- [ ] L5 Expiry scheduler + alerts — next
+- [✓] L5 Expiry scheduler + alerts (see below)
+- [ ] L6 Preferences + diet/allergen eligibility — next
 - [✓] A-01…A-08 approved by the user (2026-10-25); B-04 push authorization granted
 - [!] B-01 recipe dataset + license (blocks real RAG/plans/nutrition/cuisine)
 
@@ -129,7 +148,8 @@ Tests executed: **none** (no code exists). Git commits/pushes: **none**.
 | 2026-10-25 | Loop 2 schema v1, local DB, `.env.example` |
 | 2026-10-25 | Loop 3 error envelope, request IDs, accounts + JWT |
 | 2026-10-25 | Loop 4 pantry CRUD, lifecycle events, expiry rule |
+| 2026-10-25 | Loop 5 daily expiry scan, live alert reconciliation, alerts API |
 
 ## Next safe action
 
-L5: daily `@Scheduled` expiry scan (APP_TIMEZONE midnight + on demand in tests with a fixed `Clock`) that reconciles `expiry_alerts` idempotently (one open alert per item; resolve when stock hits 0, item deleted, or date moves out of the window); `GET /api/v1/expiry-alerts` urgency-sorted, owner-scoped; optional resolve route; sanitized count logging.
+L6: `GET/PUT /api/v1/preferences` (A-08 diets + allergens, owner-scoped, replace-set semantics) and the shared eligibility predicate (recipe allowed only if allergen metadata is complete and no ingredient carries an excluded allergen; diet label must be present), implemented once in Java and once in Python against the same synthetic fixture table. This can proceed before the recipe dataset (B-01) using synthetic fixtures only.

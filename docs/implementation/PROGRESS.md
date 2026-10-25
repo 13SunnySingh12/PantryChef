@@ -4,7 +4,7 @@ Legend: `[✓]` completed and verified · `[→]` in progress · `[ ]` pending �
 
 ## Current state (2026-10-25)
 
-**Loop 5 (expiry alerts) complete and verified locally; CI result recorded below. Next: L6 dietary/allergen preferences + eligibility predicate.**
+**Loop 5 (expiry alerts) complete and verified locally and in CI. Next: L6 dietary/allergen preferences + eligibility predicate.**
 
 ### Loop 5 — Daily expiry scan + in-app alerts (2026-10-25) `[✓]`
 
@@ -21,6 +21,8 @@ Legend: `[✓]` completed and verified · `[→]` in progress · `[ ]` pending �
 | Mutation: no reconcile after stock events | `pantryChangesReconcileAlertsImmediately` failed → restored |
 | Real run (compose DB + jar) | item created → alert immediately; item inserted directly in the DB while the app was stopped → restart log "Expiry scan for 2026-10-25: 0 alerts resolved, 1 created" → list shows expired Bread (−1) before Paneer (+1); no secrets in logs |
 | Regression: frontend lint/test; ai-service pytest | pass |
+
+Commits `2527562` (feat), `4ca3330` (docs), pushed. CI run [40216960993](https://github.com/13SunnySingh12/PantryChef/actions/runs/40216960993) on `4ca3330`: **success** (all three jobs).
 
 Covered: QA-007, QA-008, QA-003 (alerts). Not built: optional resolve route API-012 (D-027).
 

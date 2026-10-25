@@ -4,7 +4,7 @@ Legend: `[✓]` completed and verified · `[→]` in progress · `[ ]` pending �
 
 ## Current state (2026-10-25)
 
-**Loop 2 (schema v1) complete and verified locally; CI result recorded below. Next: L3 error envelope + auth.**
+**Loop 2 (schema v1) complete and verified locally and in CI. Next: L3 error envelope + auth.**
 
 ### Loop 2 — Schema v1 (2026-10-25) `[✓]`
 
@@ -20,6 +20,8 @@ Legend: `[✓]` completed and verified · `[→]` in progress · `[ ]` pending �
 | Real startup: compose DB (throwaway project + random password in shell env) + `java -jar` | Flyway "Successfully applied 1 migration … now at version v1"; app started; 12 tables in `public` (11 + Flyway history); password not in log |
 | Startup via env-file import (temp file in scratchpad) | Same success — `.env`-style file feeds the `${…}` placeholders |
 | Regression: frontend lint/test/build; ai-service pytest | all pass |
+
+Commits `f30e259` (schema), `9f54223` (docs), pushed to `main`. CI run [40176657244](https://github.com/13SunnySingh12/PantryChef/actions/runs/40176657244) on `9f54223`: **success** (frontend, backend incl. Testcontainers schema tests, ai-service).
 
 Not run: migrations against hosted Supabase (not in use, D-005); DB role separation (L7).
 

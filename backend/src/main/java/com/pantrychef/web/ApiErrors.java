@@ -45,7 +45,7 @@ public class ApiErrors {
 
 	@ExceptionHandler(ApiException.class)
 	ResponseEntity<Body> api(ApiException ex) {
-		return respond(ex.status(), ex.code(), ex.getMessage());
+		return ResponseEntity.status(ex.status()).body(body(ex.code(), ex.getMessage(), ex.fieldErrors()));
 	}
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)

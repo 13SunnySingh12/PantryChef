@@ -10,7 +10,6 @@ import java.util.UUID;
 
 import com.pantrychef.security.CurrentUser;
 import com.pantrychef.security.RateLimiter;
-import com.pantrychef.web.ApiErrors;
 import com.pantrychef.web.ApiException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -94,15 +93,13 @@ public class AuthController {
 	}
 
 	@PostMapping("/register")
-	ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request, HttpServletRequest http) {
+	ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterRequest request, HttpServletRequest http) {
 		String client = http.getRemoteAddr();
 		if (this.registrations.isLimited(client)) {
 			throw tooManyRequests();
 		}
 		if (request.password().getBytes(StandardCharsets.UTF_8).length > MAX_PASSWORD_BYTES) {
-			return ResponseEntity.badRequest()
-				.body(ApiErrors.body("VALIDATION_ERROR", "Check the highlighted fields and try again.",
-						Map.of("password", "must be at most 72 bytes")));
+			throw ApiException.invalidField("password", "must be at most 72 bytes");
 		}
 		this.registrations.record(client);
 		String email = normalize(request.email());

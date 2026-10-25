@@ -16,7 +16,21 @@ Specifications: [PantryChef.md](PantryChef.md) (overview) and [PantryChef_Comple
 
 ## Prerequisites
 
-Node.js 24, JDK 21, Python 3.12. (Docker is needed from the database loop onward.)
+Node.js 24, JDK 21, Python 3.12, Docker (local database and backend tests).
+
+## Local database
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` and set your own local passwords (it is git-ignored), then start PostgreSQL 17 + pgvector on `127.0.0.1:5440`:
+
+```bash
+docker compose up -d
+```
+
+The backend applies migrations from `database/migrations/` (Flyway) on startup. Backend tests start their own throwaway database container, so they need Docker running but no `.env`.
 
 ## Check each module
 
@@ -41,7 +55,7 @@ cd ai-service && python -m venv .venv && .venv/bin/python -m pip install -r requ
 ## Run locally
 
 - Frontend: `cd frontend && npm run dev`
-- Backend: `cd backend && ./mvnw spring-boot:run`
+- Backend (after `docker compose up -d`): `cd backend && ./mvnw spring-boot:run`
 - AI service: `cd ai-service && .venv/bin/python -m uvicorn app.main:app --reload`
 
 CI (`.github/workflows/ci.yml`) runs these checks plus `npm audit` and `pip-audit` on every push to `main` and every pull request.

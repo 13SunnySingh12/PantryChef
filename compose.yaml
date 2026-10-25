@@ -1,0 +1,15 @@
+# Local development database (PostgreSQL 17 + pgvector). Credentials come from the untracked .env file.
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_DB: pantrychef
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:${PANTRYCHEF_DB_PORT:-5440}:5432"
+    volumes:
+      - pantrychef-db:/var/lib/postgresql/data
+
+volumes:
+  pantrychef-db:

@@ -57,6 +57,8 @@ Push authorization (B-04) granted on 2026-10-25: verified milestones may be comm
 | A-11 | Waste predictor label (TBD-017) | Label = item had a `discarded` event on/before expiry+1 day; without ≥ N real labelled items return `insufficient_data` (no rule baseline dressed as ML) | ROAD-020 |
 | A-12 | Retention / account deletion (TBD-024) | Out of MVP; keep history; document as limitation | Docs |
 
+**2026-10-25: data sources approved by the user** (see `DATA_SOURCE_OPTIONS.md`): Wikibooks Cookbook (CC BY-SA 4.0, with attribution and share-alike) as the main recipe source; TheMealDB as a second source (development/educational test key, credit TheMealDB); USDA FoodData Central (CC0) for derived nutrition; `sentence-transformers/all-MiniLM-L6-v2` (Apache-2.0, 384-d) for embeddings; a reviewed ingredient→allergen dictionary to derive allergen metadata. B-01 and B-02 are resolved by this approval.
+
 ## 3. Blockers (user-supplied, cannot be fabricated)
 
 | ID | Blocker | Blocks | What only the user can do |

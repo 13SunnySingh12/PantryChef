@@ -9,8 +9,10 @@ import java.util.UUID;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.support.TransactionTemplate;
 
 // Verifies the V1 migration applies cleanly and that the database itself rejects invalid data (NFR-010, QA-025).
 @PantryChefTest
@@ -22,9 +24,12 @@ class SchemaConstraintsTests {
 	@Autowired
 	Flyway flyway;
 
+	@Autowired
+	TransactionTemplate tx;
+
 	@Test
 	void migrationsApplyAndRerunIsNoOp() {
-		assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("1");
+		assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("2");
 		assertThat(flyway.migrate().migrationsExecuted).isZero();
 	}
 
@@ -141,6 +146,38 @@ class SchemaConstraintsTests {
 		rejects(insert, plan, "milk", "Milk", null, null, false, false, null);
 		rejects(insert, plan, "eggs", "Eggs", 6, "piece", false, true, null);
 		rejects(insert, plan, "oil", "Oil", 0, "ml", false, false, null);
+	}
+
+	@Test
+	void recipeChunksRequireTheModelDimensionAndAreUniquePerModel() {
+		UUID r = recipe("chunk-recipe");
+		String insert = "INSERT INTO recipe_chunks (recipe_id, chunk_index, chunk_text, embedding, embedding_model, dataset_version)"
+				+ " VALUES (?, 0, 'text', ?::vector, ?, 'v1')";
+		String vector384 = "[" + "0.1,".repeat(383) + "0.1]";
+		jdbc.update(insert, r, vector384, "model-a");
+		jdbc.update(insert, r, vector384, "model-b");
+		rejects(insert, r, vector384, "model-a");
+		assertThatThrownBy(() -> jdbc.update(insert, r, "[0.1,0.2,0.3]", "model-c")).isInstanceOf(DataAccessException.class);
+	}
+
+	@Test
+	void aiServiceRoleReadsRecipesButNoUserData() {
+		recipe("role-check");
+		Integer recipes = tx.execute((status) -> {
+			jdbc.execute("SET LOCAL ROLE pantrychef_ai");
+			return jdbc.queryForObject("SELECT count(*) FROM recipes", Integer.class);
+		});
+		assertThat(recipes).isPositive();
+		for (String table : new String[] { "users", "pantry_items", "user_allergens", "meal_plans" }) {
+			assertThatThrownBy(() -> tx.execute((status) -> {
+				jdbc.execute("SET LOCAL ROLE pantrychef_ai");
+				return jdbc.queryForObject("SELECT count(*) FROM " + table, Integer.class);
+			})).isInstanceOf(DataAccessException.class).rootCause().hasMessageContaining("permission denied");
+		}
+		assertThatThrownBy(() -> tx.execute((status) -> {
+			jdbc.execute("SET LOCAL ROLE pantrychef_ai");
+			return jdbc.update("DELETE FROM recipes");
+		})).isInstanceOf(DataAccessException.class).rootCause().hasMessageContaining("permission denied");
 	}
 
 	@Test

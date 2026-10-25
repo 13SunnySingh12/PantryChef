@@ -4,7 +4,7 @@ Legend: `[✓]` completed and verified · `[→]` in progress · `[ ]` pending �
 
 ## Current state (2026-10-25)
 
-**Loop 4 (pantry) complete and verified locally; CI result recorded below. Next: L5 daily expiry scheduler + alerts.**
+**Loop 4 (pantry) complete and verified locally and in CI. Next: L5 daily expiry scheduler + alerts.**
 
 ### Loop 4 — Pantry items + lifecycle events (2026-10-25) `[✓]`
 
@@ -21,6 +21,8 @@ Legend: `[✓]` completed and verified · `[→]` in progress · `[ ]` pending �
 | Mutation: owner filter removed | `anotherUsersItemIsInvisibleAndImmutable` failed → restored |
 | Real run (compose DB + jar, curl) | create 201 (INR, expiring_soon) → used 201 → same `Idempotency-Key` 200 `replayed:true` → finished 201 → delete 204 → list `[]`; DB holds 2 events (used 1, finished 1) |
 | Regression: frontend lint/test; ai-service pytest | pass |
+
+Commits `a028f61` (feat), `d79b3bd` (docs), pushed. CI run [40178181695](https://github.com/13SunnySingh12/PantryChef/actions/runs/40178181695) on `d79b3bd`: **success** (all three jobs).
 
 Covered: QA-003 (items/events), QA-004, QA-005, QA-006 (event distinction; savings figures in L9), QA-019, QA-020 (API part).
 

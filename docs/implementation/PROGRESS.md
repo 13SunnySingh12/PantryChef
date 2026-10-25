@@ -4,7 +4,27 @@ Legend: `[✓]` completed and verified · `[→]` in progress · `[ ]` pending �
 
 ## Current state (2026-10-25)
 
-**Loop 2 (schema v1) complete and verified locally and in CI. Next: L3 error envelope + auth.**
+**Loop 3 (errors + auth) complete and verified locally; CI result recorded below. Next: L4 pantry CRUD + lifecycle events.**
+
+### Loop 3 — Error envelope + accounts (2026-10-25) `[✓]`
+
+- `web/RequestIdFilter` (safe incoming `X-Request-Id` or new UUID; MDC + response header), `web/ApiErrors` (§7.1 envelope for validation, malformed body, 404/405/415, `ApiException`, sanitized 500), `web/ApiException`
+- `security/SecurityConfig` (stateless bearer JWT, HS256, issuer check, envelope 401/403, BCrypt), `security/RateLimiter`, `security/CurrentUser`
+- `auth/AuthController`: `POST /api/v1/auth/register` (201), `/login` (200 token, 60 min), `/logout` (204), `GET /api/v1/auth/me`
+- Config: `pantrychef.jwt.*` from `JWT_SIGNING_SECRET` / `JWT_ISSUER`; `.env.example` updated; log lines carry the request ID
+- Decisions D-020…D-024 (JdbcClient, auth details, rate limits, registration disclosure limitation, sanitized error logging)
+
+| Check | Result |
+|---|---|
+| `mvnw.cmd -B verify` | BUILD SUCCESS — 25 tests, 0 failures (AuthTests 11, SchemaConstraintsTests 10, RateLimiterTests 2, ApiErrorsTests 1, context 1) |
+| Mutation check: issuer validation removed | `AuthTests` failed as expected (wrong-issuer token accepted) → restored, suite green |
+| Real run: compose DB + jar, curl register → login → me | 201 → token → 200 with own email |
+| Real run: unauthenticated `GET /api/v1/pantry-items` | 401 envelope with request ID; `X-Content-Type-Options`, `X-Frame-Options: DENY`, no-store cache headers |
+| Real run without `JWT_SIGNING_SECRET` | Startup refused ("Could not resolve placeholder 'JWT_SIGNING_SECRET'") |
+| Real-run log grep for token, signing secret, DB password, user password | 0 matches; no generated default password |
+| Regression: frontend lint/test; ai-service pytest | pass |
+
+Covered tests: QA-001, QA-002, QA-021 (missing/garbage/forged/expired/wrong-issuer/unknown-subject tokens), QA-003 identity part. Not run: CORS (no browser client yet; L11 decides proxy vs CORS).
 
 ### Loop 2 — Schema v1 (2026-10-25) `[✓]`
 
@@ -58,7 +78,8 @@ Not run yet: deliberate-failure CI run (QA-024, planned for L12); pull-request t
 - [✓] Wrote audit, traceability, loop plan, decisions/blockers, this log
 - [✓] L1 Foundation (see below)
 - [✓] L2 Schema v1 (see below)
-- [ ] L3 Error envelope + auth — next
+- [✓] L3 Error envelope + auth (see below)
+- [ ] L4 Pantry CRUD + lifecycle events — next
 - [✓] A-01…A-08 approved by the user (2026-10-25); B-04 push authorization granted
 - [!] B-01 recipe dataset + license (blocks real RAG/plans/nutrition/cuisine)
 
@@ -83,7 +104,8 @@ Tests executed: **none** (no code exists). Git commits/pushes: **none**.
 | 2026-10-25 | Phase 0 audit records created |
 | 2026-10-25 | Loop 1 foundation scaffold + CI |
 | 2026-10-25 | Loop 2 schema v1, local DB, `.env.example` |
+| 2026-10-25 | Loop 3 error envelope, request IDs, accounts + JWT |
 
 ## Next safe action
 
-L3: error envelope (§7.1, 400 policy D-011) + request-ID filter; Spring Security with stateless bearer JWT (D-008, A-07: 60-min access token, BCrypt, generic login errors, login rate limit); `register`/`login`/`logout`/`me`; cross-user test harness. Needs a local `JWT_SIGNING_SECRET` only to *run* the app (tests generate their own).
+L4: pantry CRUD (`/api/v1/pantry-items`, owner-scoped, A-04 vocab, `APP_CURRENCY=INR` default, optimistic `version`, soft delete) and lifecycle events (`used`/`finished`/`discarded`, atomic stock update, idempotency key, no negative stock). Cross-user tests with two users on every route.

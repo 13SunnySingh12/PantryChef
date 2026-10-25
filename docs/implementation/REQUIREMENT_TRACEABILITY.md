@@ -6,8 +6,8 @@ Status values: **Not implemented** · **Implemented (code evidence)** · **Execu
 
 | ID | Pri | Requirement [PantryChef.md] | Loop | Planned tests | Depends on | Code | Status |
 |---|---|---|---|---|---|---|---|
-| FR-001 | P0 | Register/login with JWT [§8] | L3 | QA-001, QA-002, QA-021 | A-07 | — | Not implemented |
-| FR-002 | P0 | Per-user data isolation [§8] | L3–L9 | QA-003, QA-021 | — | — | Not implemented |
+| FR-001 | P0 | Register/login with JWT [§8] | L3 | QA-001, QA-002, QA-021 | — | `backend/…/auth/AuthController.java`, `security/SecurityConfig.java` | Executed and passed (`AuthTests`); limitation D-023 |
+| FR-002 | P0 | Per-user data isolation [§8] | L3–L9 | QA-003, QA-021 | — | `security/CurrentUser.java` (identity only from token subject) | Identity layer passed (`AuthTests`); per-resource checks pending L4–L9 |
 | FR-003 | P0 | Pantry CRUD [§1] | L4 | QA-004, QA-019 | A-03, A-04 | — | Not implemented |
 | FR-004 | P0 | Categories incl. explicit `other` [§1] | L4 | QA-004 | A-04 | — | Not implemented |
 | FR-005 | P0 | used/finished/discarded events [§1] | L4 | QA-005, QA-006 | A-05 | — | Not implemented |
@@ -29,7 +29,7 @@ Status values: **Not implemented** · **Implemented (code evidence)** · **Execu
 | FR-021 | P1 | Weekly nutrition summary [§7] | L9 | QA-014 | B-01 (nutrition source) | — | Not implemented |
 | FR-022 | P1 | Bar/line charts with summaries [§7] | L9 | QA-014 | — | — | Not implemented |
 | FR-023 | P0 | In-app alerts only [§2, Out of scope] | L5 | review: no email/push/SMS deps | — | — | Not implemented |
-| FR-024 | P0 | Input validation, safe stable errors | L2–L9 | QA-004, QA-019, QA-020 | — | — | Not implemented |
+| FR-024 | P0 | Input validation, safe stable errors | L2–L9 | QA-004, QA-019, QA-020 | — | `web/ApiErrors.java`, `web/RequestIdFilter.java`, DB checks | Envelope + auth DTOs passed; pantry DTOs pending L4 |
 | FR-025 | P0 | Paid-free, fixture-based tests | L1–L11 | QA-018, QA-023 | — | — | Not implemented |
 | FR-026 | P0 | CI on push + PR, no deploy [§9] | L1, L12 | QA-024 | — | `.github/workflows/ci.yml` | Implemented; push run 40175915022 passed; PR trigger + deliberate failure Not Run |
 
@@ -37,11 +37,11 @@ Status values: **Not implemented** · **Implemented (code evidence)** · **Execu
 
 | ID | Requirement | Verified by | Status |
 |---|---|---|---|
-| NFR-001 | Secure authn/authz, hashes only | QA-001, QA-003, QA-021 | Not implemented |
-| NFR-002 | Privacy / sanitized logs | Log review + tests asserting no token/password in logs | Not implemented |
+| NFR-001 | Secure authn/authz, hashes only | QA-001, QA-003, QA-021 | Authn: Executed and passed; authz per resource pending |
+| NFR-002 | Privacy / sanitized logs | Log review + tests asserting no token/password in logs | Auth paths passed (`logsNeverContainPasswordsOrTokens` + real-run log grep) |
 | NFR-003 | Free-core, no paid fallback | QA-018; dependency review | Not implemented |
 | NFR-004 | Local reproducibility | ROAD-033 clean-setup run | Not implemented |
-| NFR-005 | Predictable failures, safe errors | QA-017 | Not implemented |
+| NFR-005 | Predictable failures, safe errors | QA-017 | Envelope passed (`ApiErrorsTests`); downstream timeouts pending L7 |
 | NFR-006 | Maintainability, pinned deps, contracts | Lockfiles, OpenAPI | Not implemented |
 | NFR-007 | Accessibility | Frontend interaction tests, keyboard pass, Impeccable audit | Not implemented |
 | NFR-008 | Responsive usability | Viewport checks (mobile/tablet/desktop) | Not implemented |

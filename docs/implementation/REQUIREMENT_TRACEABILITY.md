@@ -46,7 +46,7 @@ Status values: **Not implemented** · **Implemented (code evidence)** · **Execu
 | NFR-007 | Accessibility | Frontend interaction tests, keyboard pass, Impeccable audit | Not implemented |
 | NFR-008 | Responsive usability | Viewport checks (mobile/tablet/desktop) | Not implemented |
 | NFR-009 | Measured performance baseline | ROAD-029 | Not implemented |
-| NFR-010 | Data integrity constraints | QA-005, QA-025, DB integration tests | Not implemented |
+| NFR-010 | Data integrity constraints | QA-005, QA-025, DB integration tests | DB layer: Executed and passed (`SchemaConstraintsTests`, 10 tests); app-level atomicity pending L4 |
 | NFR-011 | Honest test status | This file + PROGRESS.md | In effect (process) |
 | NFR-012 | CI without deployment | QA-024; workflow review | Not implemented |
 

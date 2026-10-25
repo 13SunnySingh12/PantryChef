@@ -5,8 +5,8 @@ Each loop = one coherent slice: plan → smallest change → focused tests → r
 | Loop | Scope | ROAD | FR / NFR | Needs before "done" | Verification |
 |---|---|---|---|---|---|
 | L1 | Foundation: `git init` (`main`), `.gitignore`, `.env.example` (placeholders), README skeleton; scaffold `frontend/` (Vite React JS, ESLint, Vitest), `backend/` (Spring Boot 4.1, Java 21, Maven Wrapper), `ai-service/` (FastAPI, pytest), each with one smoke test | 001–004 | NFR-004, NFR-006 | B-04 to push | `npm ci && npm run lint && npm test && npm run build`; `mvnw.cmd -B verify`; `python -m pytest -q` |
-| L2 | Schema v1 (Flyway, `database/migrations/`): users, pantry_items, pantry_item_events, expiry_alerts, preferences/allergens, recipes, recipe_ingredients, recipe_chunks (vector dim per B-02), meal_plans, meal_plan_entries, grocery_items; constraints; error envelope + request-ID filter | 005–007 | NFR-010, FR-024 | A-03, A-04, A-05 | Testcontainers pgvector: fresh apply, constraint tests |
-| L3 | Auth: register/login/me/logout, BCrypt, JWT HS256 validation, rate limit, owner-scoping helper | 009, 023 | FR-001, FR-002, NFR-001 | A-07 | QA-001/002/003/021 |
+| L2 ✓ | Schema v1 (Flyway, `database/migrations/`): 11 tables + constraints; `recipe_chunks` deferred to L7 (D-017); local compose DB + `.env.example` | 005–006 | NFR-010, FR-024 | — | Testcontainers pgvector: fresh apply, rerun no-op, constraint tests; real startup |
+| L3 | Error envelope + request-ID filter (D-019); auth: register/login/me/logout, BCrypt, JWT HS256 validation, rate limit, owner-scoping helper | 009, 023 | FR-001, FR-002, NFR-001 | A-07 | QA-001/002/003/021 |
 | L4 | Pantry CRUD + lifecycle events (atomic, idempotency key, optimistic locking, soft delete) | 010, 012 | FR-003–005, FR-024 | A-04, A-05 | QA-004/005/006/019 |
 | L5 | Daily expiry scheduler + alerts API (fixed `Clock`, upsert reconciliation) | 011 | FR-006–008, FR-023 | A-01, A-02 | QA-007/008 |
 | L6 | Preferences API + shared diet/allergen eligibility predicate (Java + Python, same fixtures) | 015, 025 | FR-011, FR-012 | A-08 | QA-010 |

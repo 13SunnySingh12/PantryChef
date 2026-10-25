@@ -4,7 +4,24 @@ Legend: `[✓]` completed and verified · `[→]` in progress · `[ ]` pending �
 
 ## Current state (2026-10-25)
 
-**Loop 1 (foundation) complete and verified locally and in CI. Next: L2 schema — needs the `APP_CURRENCY` value first (and `APP_TIMEZONE` before L5).**
+**Loop 2 (schema v1) complete and verified locally; CI result recorded below. Next: L3 error envelope + auth.**
+
+### Loop 2 — Schema v1 (2026-10-25) `[✓]`
+
+- `database/migrations/V1__core_schema.sql`: 11 tables, 4 vocabulary domains, FKs, uniqueness, check constraints (D-017); `recipe_chunks` deferred until the embedding model is approved
+- Backend: JDBC, Flyway (+ PostgreSQL module), PostgreSQL driver; Testcontainers (`pgvector/pgvector:pg17`) for tests; migrations mapped onto the classpath from `database/migrations/`
+- `compose.yaml` (local DB on `127.0.0.1:5440`), `.env.example` (placeholders only), datasource read from `.env` or environment
+- Recorded `APP_TIMEZONE=Asia/Kolkata`, `APP_CURRENCY=INR`
+
+| Check | Result |
+|---|---|
+| `mvnw.cmd -B verify` | BUILD SUCCESS — 11 tests, 0 failures (`SchemaConstraintsTests` 10, context load 1) |
+| First run of the constraint tests | **Failed as intended**: `NaN` price was accepted (Postgres orders NaN above all numbers) → added `<> 'NaN'` to all 12 numeric checks; one test had a wrong date (fixed) |
+| Real startup: compose DB (throwaway project + random password in shell env) + `java -jar` | Flyway "Successfully applied 1 migration … now at version v1"; app started; 12 tables in `public` (11 + Flyway history); password not in log |
+| Startup via env-file import (temp file in scratchpad) | Same success — `.env`-style file feeds the `${…}` placeholders |
+| Regression: frontend lint/test/build; ai-service pytest | all pass |
+
+Not run: migrations against hosted Supabase (not in use, D-005); DB role separation (L7).
 
 ### Loop 1 — Foundation (2026-10-25) `[✓]`
 
@@ -38,9 +55,9 @@ Not run yet: deliberate-failure CI run (QA-024, planned for L12); pull-request t
 - [✓] Ran Graphify on the specs (254 nodes / 602 edges / 10 communities)
 - [✓] Wrote audit, traceability, loop plan, decisions/blockers, this log
 - [✓] L1 Foundation (see below)
-- [ ] L2 Schema v1 — next
+- [✓] L2 Schema v1 (see below)
+- [ ] L3 Error envelope + auth — next
 - [✓] A-01…A-08 approved by the user (2026-10-25); B-04 push authorization granted
-- [!] `APP_CURRENCY` and `APP_TIMEZONE` values not yet supplied
 - [!] B-01 recipe dataset + license (blocks real RAG/plans/nutrition/cuisine)
 
 ## Commands executed in Phase 0 (all read-only except writing graphify-out/ and docs/)
@@ -63,7 +80,8 @@ Tests executed: **none** (no code exists). Git commits/pushes: **none**.
 |---|---|
 | 2026-10-25 | Phase 0 audit records created |
 | 2026-10-25 | Loop 1 foundation scaffold + CI |
+| 2026-10-25 | Loop 2 schema v1, local DB, `.env.example` |
 
 ## Next safe action
 
-L2 Schema v1: add Spring Data JPA, Flyway, PostgreSQL driver and Testcontainers (`pgvector/pgvector:pg17`); write the first migration for the 12 tables and constraints, the error envelope and request-ID filter; add `.env.example` for the variables that are actually read. Needs the `APP_CURRENCY` value for the currency default.
+L3: error envelope (§7.1, 400 policy D-011) + request-ID filter; Spring Security with stateless bearer JWT (D-008, A-07: 60-min access token, BCrypt, generic login errors, login rate limit); `register`/`login`/`logout`/`me`; cross-user test harness. Needs a local `JWT_SIGNING_SECRET` only to *run* the app (tests generate their own).

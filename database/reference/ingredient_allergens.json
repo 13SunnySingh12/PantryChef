@@ -1,0 +1,711 @@
+{
+  "version": "2026-10-25.1",
+  "status": "draft: pending review by the project owner (approved in principle on 2026-10-25)",
+  "scope": "Top allergen codes from decision A-08. Not medical advice; cross-contamination is not modelled.",
+  "how_it_is_used": [
+    "keywords: any ingredient whose normalized name contains a keyword (whole-word match) gets that allergen flag. Keywords only ADD flags; they never make a recipe's allergen data complete.",
+    "keyword_exceptions: phrases that contain a keyword but are not that allergen (e.g. coconut milk is not dairy).",
+    "known: single foods whose allergen codes are known. A recipe is allergen-complete only if EVERY ingredient matches a 'known' entry exactly. Composite or variable products (bread, pasta, stock, sauces, spice blends, chocolate, vegetable oil) are deliberately absent, so recipes using them stay 'unknown' and are excluded for users with allergen exclusions."
+  ],
+  "keywords": {
+    "dairy": [
+      "milk",
+      "butter",
+      "buttermilk",
+      "cheese",
+      "cream",
+      "ghee",
+      "yogurt",
+      "yoghurt",
+      "curd",
+      "paneer",
+      "whey",
+      "casein",
+      "mozzarella",
+      "parmesan",
+      "cheddar",
+      "ricotta",
+      "mascarpone",
+      "feta",
+      "custard",
+      "ice cream",
+      "khoa",
+      "khoya",
+      "kefir",
+      "lassi",
+      "condensed milk",
+      "evaporated milk",
+      "creme fraiche"
+    ],
+    "eggs": [
+      "egg",
+      "eggs",
+      "egg white",
+      "egg yolk",
+      "mayonnaise",
+      "meringue",
+      "aioli"
+    ],
+    "gluten": [
+      "wheat",
+      "flour",
+      "bread",
+      "breadcrumbs",
+      "breadcrumb",
+      "pasta",
+      "spaghetti",
+      "macaroni",
+      "noodle",
+      "noodles",
+      "semolina",
+      "suji",
+      "rava",
+      "barley",
+      "rye",
+      "couscous",
+      "bulgur",
+      "maida",
+      "atta",
+      "seitan",
+      "beer",
+      "soy sauce",
+      "pastry",
+      "cracker",
+      "crackers",
+      "biscuit",
+      "biscuits",
+      "tortilla",
+      "pita",
+      "naan",
+      "cake",
+      "spelt",
+      "farro",
+      "malt"
+    ],
+    "soy": [
+      "soy",
+      "soya",
+      "soybean",
+      "soybeans",
+      "tofu",
+      "tempeh",
+      "edamame",
+      "miso"
+    ],
+    "peanuts": [
+      "peanut",
+      "peanuts",
+      "groundnut",
+      "groundnuts"
+    ],
+    "tree_nuts": [
+      "almond",
+      "almonds",
+      "cashew",
+      "cashews",
+      "walnut",
+      "walnuts",
+      "pecan",
+      "pecans",
+      "pistachio",
+      "pistachios",
+      "hazelnut",
+      "hazelnuts",
+      "macadamia",
+      "brazil nut",
+      "pine nut",
+      "pine nuts",
+      "praline",
+      "marzipan",
+      "nut",
+      "nuts",
+      "coconut"
+    ],
+    "fish": [
+      "fish",
+      "salmon",
+      "tuna",
+      "cod",
+      "anchovy",
+      "anchovies",
+      "sardine",
+      "sardines",
+      "mackerel",
+      "haddock",
+      "trout",
+      "tilapia",
+      "halibut",
+      "worcestershire",
+      "pollock",
+      "herring",
+      "snapper",
+      "sea bass",
+      "swordfish",
+      "catfish",
+      "pomfret",
+      "hilsa",
+      "rohu"
+    ],
+    "shellfish": [
+      "shrimp",
+      "shrimps",
+      "prawn",
+      "prawns",
+      "crab",
+      "lobster",
+      "crayfish",
+      "scallop",
+      "scallops",
+      "mussel",
+      "mussels",
+      "clam",
+      "clams",
+      "oyster",
+      "oysters",
+      "squid",
+      "calamari",
+      "octopus",
+      "langoustine"
+    ],
+    "sesame": [
+      "sesame",
+      "tahini",
+      "gingelly",
+      "til"
+    ]
+  },
+  "keyword_exceptions": {
+    "dairy": [
+      "coconut milk",
+      "almond milk",
+      "soy milk",
+      "soya milk",
+      "oat milk",
+      "rice milk",
+      "cocoa butter",
+      "peanut butter",
+      "nut butter",
+      "almond butter",
+      "cashew butter",
+      "coconut cream",
+      "cream of tartar",
+      "butter bean",
+      "butter beans",
+      "butternut squash",
+      "butternut",
+      "cream tartar"
+    ],
+    "gluten": [
+      "rice flour",
+      "corn flour",
+      "cornflour",
+      "chickpea flour",
+      "gram flour",
+      "besan",
+      "tapioca flour",
+      "potato flour",
+      "rice noodle",
+      "rice noodles"
+    ],
+    "eggs": [
+      "eggplant",
+      "eggplants"
+    ],
+    "tree_nuts": [
+      "nutmeg",
+      "butternut",
+      "butternut squash",
+      "water chestnut",
+      "water chestnuts"
+    ]
+  },
+  "known": {
+    "water": [],
+    "salt": [],
+    "sugar": [],
+    "brown sugar": [],
+    "jaggery": [],
+    "honey": [],
+    "black pepper": [],
+    "white pepper": [],
+    "pepper": [],
+    "peppercorn": [],
+    "onion": [],
+    "red onion": [],
+    "white onion": [],
+    "spring onion": [],
+    "green onion": [],
+    "scallion": [],
+    "shallot": [],
+    "leek": [],
+    "garlic": [],
+    "ginger": [],
+    "fresh ginger": [],
+    "tomato": [],
+    "cherry tomato": [],
+    "potato": [],
+    "sweet potato": [],
+    "carrot": [],
+    "beetroot": [],
+    "beet": [],
+    "radish": [],
+    "turnip": [],
+    "spinach": [],
+    "kale": [],
+    "lettuce": [],
+    "cabbage": [],
+    "red cabbage": [],
+    "cauliflower": [],
+    "broccoli": [],
+    "brussels sprout": [],
+    "pea": [],
+    "green pea": [],
+    "green bean": [],
+    "french bean": [],
+    "okra": [],
+    "bhindi": [],
+    "eggplant": [],
+    "aubergine": [],
+    "brinjal": [],
+    "zucchini": [],
+    "courgette": [],
+    "cucumber": [],
+    "pumpkin": [],
+    "butternut squash": [],
+    "squash": [],
+    "bell pepper": [],
+    "red bell pepper": [],
+    "green bell pepper": [],
+    "capsicum": [],
+    "chilli": [],
+    "chili": [],
+    "green chilli": [],
+    "red chilli": [],
+    "jalapeno": [],
+    "chilli powder": [],
+    "chili powder": [],
+    "red chilli powder": [],
+    "cayenne pepper": [],
+    "paprika": [],
+    "mushroom": [],
+    "corn": [],
+    "sweetcorn": [],
+    "celery": [],
+    "fennel": [],
+    "asparagus": [],
+    "artichoke": [],
+    "avocado": [],
+    "apple": [],
+    "banana": [],
+    "lemon": [],
+    "lime": [],
+    "orange": [],
+    "mango": [],
+    "pineapple": [],
+    "grape": [],
+    "strawberry": [],
+    "blueberry": [],
+    "raspberry": [],
+    "pear": [],
+    "peach": [],
+    "plum": [],
+    "cherry": [],
+    "pomegranate": [],
+    "raisin": [],
+    "date": [],
+    "watermelon": [],
+    "melon": [],
+    "kiwi": [],
+    "apricot": [],
+    "lemon juice": [],
+    "lime juice": [],
+    "orange juice": [],
+    "rice": [],
+    "basmati rice": [],
+    "brown rice": [],
+    "white rice": [],
+    "jasmine rice": [],
+    "rice flour": [],
+    "cornflour": [],
+    "corn flour": [],
+    "cornstarch": [],
+    "potato starch": [],
+    "tapioca": [],
+    "quinoa": [],
+    "millet": [],
+    "polenta": [],
+    "lentil": [],
+    "red lentil": [],
+    "green lentil": [],
+    "toor dal": [],
+    "moong dal": [],
+    "masoor dal": [],
+    "urad dal": [],
+    "chana dal": [],
+    "chickpea": [],
+    "chickpea flour": [],
+    "gram flour": [],
+    "besan": [],
+    "kidney bean": [],
+    "black bean": [],
+    "pinto bean": [],
+    "cannellini bean": [],
+    "butter bean": [],
+    "turmeric": [],
+    "cumin": [],
+    "cumin seed": [],
+    "ground cumin": [],
+    "coriander": [],
+    "coriander seed": [],
+    "ground coriander": [],
+    "coriander leaf": [],
+    "cilantro": [],
+    "cardamom": [],
+    "green cardamom": [],
+    "clove": [],
+    "cinnamon": [],
+    "cinnamon stick": [],
+    "bay leaf": [],
+    "star anise": [],
+    "nutmeg": [],
+    "fenugreek": [],
+    "fenugreek seed": [],
+    "kasuri methi": [],
+    "asafoetida": [],
+    "mustard seed": [],
+    "fennel seed": [],
+    "curry leaf": [],
+    "saffron": [],
+    "vanilla": [],
+    "vanilla extract": [],
+    "basil": [],
+    "oregano": [],
+    "thyme": [],
+    "rosemary": [],
+    "parsley": [],
+    "mint": [],
+    "dill": [],
+    "sage": [],
+    "chive": [],
+    "tarragon": [],
+    "olive oil": [],
+    "extra virgin olive oil": [],
+    "sunflower oil": [],
+    "canola oil": [],
+    "mustard oil": [],
+    "vinegar": [],
+    "white vinegar": [],
+    "apple cider vinegar": [],
+    "red wine vinegar": [],
+    "baking soda": [],
+    "bicarbonate of soda": [],
+    "baking powder": [],
+    "yeast": [],
+    "dry yeast": [],
+    "chicken": [],
+    "chicken breast": [],
+    "chicken thigh": [],
+    "beef": [],
+    "ground beef": [],
+    "pork": [],
+    "lamb": [],
+    "mutton": [],
+    "goat": [],
+    "turkey": [],
+    "milk": [
+      "dairy"
+    ],
+    "whole milk": [
+      "dairy"
+    ],
+    "butter": [
+      "dairy"
+    ],
+    "unsalted butter": [
+      "dairy"
+    ],
+    "ghee": [
+      "dairy"
+    ],
+    "yogurt": [
+      "dairy"
+    ],
+    "plain yogurt": [
+      "dairy"
+    ],
+    "curd": [
+      "dairy"
+    ],
+    "paneer": [
+      "dairy"
+    ],
+    "cream": [
+      "dairy"
+    ],
+    "heavy cream": [
+      "dairy"
+    ],
+    "double cream": [
+      "dairy"
+    ],
+    "sour cream": [
+      "dairy"
+    ],
+    "buttermilk": [
+      "dairy"
+    ],
+    "parmesan": [
+      "dairy"
+    ],
+    "mozzarella": [
+      "dairy"
+    ],
+    "cheddar": [
+      "dairy"
+    ],
+    "feta": [
+      "dairy"
+    ],
+    "ricotta": [
+      "dairy"
+    ],
+    "egg": [
+      "eggs"
+    ],
+    "egg white": [
+      "eggs"
+    ],
+    "egg yolk": [
+      "eggs"
+    ],
+    "wheat flour": [
+      "gluten"
+    ],
+    "all purpose flour": [
+      "gluten"
+    ],
+    "plain flour": [
+      "gluten"
+    ],
+    "self raising flour": [
+      "gluten"
+    ],
+    "whole wheat flour": [
+      "gluten"
+    ],
+    "maida": [
+      "gluten"
+    ],
+    "atta": [
+      "gluten"
+    ],
+    "semolina": [
+      "gluten"
+    ],
+    "tofu": [
+      "soy"
+    ],
+    "edamame": [
+      "soy"
+    ],
+    "peanut": [
+      "peanuts"
+    ],
+    "almond": [
+      "tree_nuts"
+    ],
+    "cashew": [
+      "tree_nuts"
+    ],
+    "walnut": [
+      "tree_nuts"
+    ],
+    "pistachio": [
+      "tree_nuts"
+    ],
+    "pecan": [
+      "tree_nuts"
+    ],
+    "hazelnut": [
+      "tree_nuts"
+    ],
+    "coconut": [
+      "tree_nuts"
+    ],
+    "desiccated coconut": [
+      "tree_nuts"
+    ],
+    "salmon": [
+      "fish"
+    ],
+    "tuna": [
+      "fish"
+    ],
+    "cod": [
+      "fish"
+    ],
+    "sardine": [
+      "fish"
+    ],
+    "mackerel": [
+      "fish"
+    ],
+    "anchovy": [
+      "fish"
+    ],
+    "shrimp": [
+      "shellfish"
+    ],
+    "prawn": [
+      "shellfish"
+    ],
+    "crab": [
+      "shellfish"
+    ],
+    "mussel": [
+      "shellfish"
+    ],
+    "squid": [
+      "shellfish"
+    ],
+    "sesame seed": [
+      "sesame"
+    ],
+    "tahini": [
+      "sesame"
+    ],
+    "sesame oil": [
+      "sesame"
+    ],
+    "kosher salt": [],
+    "sea salt": [],
+    "caster sugar": [],
+    "granulated sugar": [],
+    "icing sugar": [],
+    "powdered sugar": [],
+    "muscovado sugar": [],
+    "garlic powder": [],
+    "onion powder": [],
+    "allspice": [],
+    "red pepper": [],
+    "green pepper": [],
+    "yellow pepper": [],
+    "scotch bonnet": [],
+    "red pepper flake": [],
+    "plum tomato": [],
+    "tinned tomato": [],
+    "canned tomato": [],
+    "chopped tomato": [],
+    "tomato paste": [],
+    "tomato puree": [],
+    "cider vinegar": [],
+    "rice vinegar": [],
+    "white wine vinegar": [],
+    "balsamic vinegar": [],
+    "basil leaf": [],
+    "brown lentil": [],
+    "cornmeal": [],
+    "lemon zest": [],
+    "lime zest": [],
+    "orange zest": [],
+    "new potato": [],
+    "baby spinach": [],
+    "chickpeas": [],
+    "lentils": [],
+    "dried oregano": [],
+    "smoked paprika": [],
+    "ground ginger": [],
+    "ground cinnamon": [],
+    "garam masala": [],
+    "chicken leg": [],
+    "chicken wing": [],
+    "flour": [
+      "gluten"
+    ],
+    "bread flour": [
+      "gluten"
+    ],
+    "cheese": [
+      "dairy"
+    ],
+    "parmesan cheese": [
+      "dairy"
+    ],
+    "cheddar cheese": [
+      "dairy"
+    ],
+    "cream cheese": [
+      "dairy"
+    ],
+    "greek yogurt": [
+      "dairy"
+    ],
+    "creme fraiche": [
+      "dairy"
+    ],
+    "mozzarella cheese": [
+      "dairy"
+    ],
+    "feta cheese": [
+      "dairy"
+    ],
+    "milk powder": [
+      "dairy"
+    ],
+    "condensed milk": [
+      "dairy"
+    ],
+    "mayonnaise": [
+      "eggs"
+    ],
+    "soy sauce": [
+      "soy",
+      "gluten"
+    ],
+    "fish sauce": [
+      "fish"
+    ],
+    "coconut milk": [
+      "tree_nuts"
+    ],
+    "coconut cream": [
+      "tree_nuts"
+    ],
+    "sesame seed oil": [
+      "sesame"
+    ],
+    "king prawn": [
+      "shellfish"
+    ],
+    "crayfish": [
+      "shellfish"
+    ],
+    "fish": [
+      "fish"
+    ],
+    "pine nut": [
+      "tree_nuts"
+    ],
+    "peanut oil": [
+      "peanuts"
+    ],
+    "vegetable oil": [],
+    "oil": [],
+    "virgin olive oil": [],
+    "palm oil": [],
+    "rapeseed oil": [],
+    "corn oil": [],
+    "groundnut oil": [
+      "peanuts"
+    ],
+    "coconut oil": [
+      "tree_nuts"
+    ],
+    "chile": []
+  },
+  "notes_for_review": [
+    "Generic 'vegetable oil' and 'oil' are treated as allergen-free because highly refined oils are exempt from allergen labelling in the US (FALCPA) and EU. Cold-pressed nut/seed oils are not covered by this: 'groundnut oil' and 'peanut oil' stay flagged peanuts, 'sesame oil' sesame, 'coconut oil' tree_nuts. Remove 'vegetable oil' and 'oil' if you prefer recipes with them to stay 'unknown'.",
+    "'flour' is treated as wheat flour (gluten). 'soy sauce' is flagged soy and gluten. 'coconut' is flagged tree_nuts as a conservative choice.",
+    "Composite products (stock, broth, bread, pasta, sausages, bacon, chorizo, wine, mustard, ketchup, chocolate, margarine, Worcestershire sauce) are deliberately left unknown."
+  ]
+}

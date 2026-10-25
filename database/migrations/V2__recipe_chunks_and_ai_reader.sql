@@ -15,8 +15,10 @@ CREATE TABLE recipe_chunks (
   UNIQUE (recipe_id, chunk_index, embedding_model)
 );
 
--- Attribution shown with every citation (CC BY-SA credit line, TheMealDB credit).
+-- Attribution shown with every citation (CC BY-SA credit line, TheMealDB credit), and where the allergen flags came
+-- from (the versioned ingredient dictionary, since neither source publishes allergen data).
 ALTER TABLE recipes ADD COLUMN attribution text;
+ALTER TABLE recipes ADD COLUMN allergen_source text;
 
 -- The AI service reads recipe data only: no access to users, pantry, preferences or plans. It is created without
 -- a password; a local setup step grants LOGIN with a password from the developer's .env (never in a migration).

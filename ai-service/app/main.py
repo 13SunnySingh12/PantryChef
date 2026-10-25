@@ -1,8 +1,93 @@
-from fastapi import FastAPI
+import hmac
+import logging
+from typing import Literal
+
+from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel, ConfigDict, Field
+
+from app.config import setting
+from app.db import connect
+from app.embeddings import Embed, embed
+from app.retrieval import PantryItem, retrieve
+
+log = logging.getLogger("pantrychef.ai")
 
 app = FastAPI(title="PantryChef AI service")
+
+
+def require_service_token(x_service_token: str | None = Header(default=None)) -> None:
+    """Only the PantryChef backend may call /internal routes (D-009); a hidden port is not security."""
+    expected = setting("SERVICE_TO_SERVICE_SECRET")
+    if not expected or len(expected) < 32:
+        raise HTTPException(503, detail=("SERVICE_NOT_CONFIGURED", "Internal authentication is not configured."))
+    if not x_service_token or not hmac.compare_digest(x_service_token.encode(), expected.encode()):
+        raise HTTPException(401, detail=("UNAUTHENTICATED", "Missing or invalid service credentials."))
+
+
+internal = APIRouter(prefix="/internal/v1", dependencies=[Depends(require_service_token)])
+
+
+def _error(status: int, code: str, message: str, field_errors: dict | None = None) -> JSONResponse:
+    body = {"code": code, "message": message}
+    if field_errors:
+        body["fieldErrors"] = field_errors
+    return JSONResponse(status_code=status, content={"error": body})
+
+
+@app.exception_handler(HTTPException)
+async def http_error(request: Request, exc: HTTPException):
+    if isinstance(exc.detail, tuple):
+        return _error(exc.status_code, *exc.detail)
+    return _error(exc.status_code, "ERROR", "Request failed.")
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_error(request: Request, exc: RequestValidationError):
+    # Same policy as the backend (D-011): invalid input is 400, never echoing the submitted values.
+    fields = {".".join(str(p) for p in e["loc"][1:]) or "body": e["msg"] for e in exc.errors()}
+    return _error(400, "VALIDATION_ERROR", "Check the request fields.", fields)
+
+
+@app.exception_handler(Exception)
+async def unexpected_error(request: Request, exc: Exception):
+    log.error("Unhandled %s", type(exc).__name__)
+    return _error(500, "INTERNAL_ERROR", "Something went wrong.")
 
 
 @app.get("/internal/v1/health")
 def health():
     return {"status": "ok"}
+
+
+Diet = Literal["vegetarian", "vegan", "gluten_free"]
+Allergen = Literal["peanuts", "tree_nuts", "dairy", "eggs", "gluten", "soy", "fish", "shellfish", "sesame"]
+
+
+class PantryIngredient(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    name: str = Field(min_length=1, max_length=100)
+    daysToExpiry: int | None = Field(default=None, ge=-3650, le=3650)
+
+
+class RetrieveRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    pantry: list[PantryIngredient] = Field(max_length=500)
+    diets: list[Diet] = Field(default_factory=list, max_length=10)
+    allergens: list[Allergen] = Field(default_factory=list, max_length=20)
+    limit: int = Field(default=10, ge=1, le=50)
+
+
+def get_embed() -> Embed:
+    return embed
+
+
+@internal.post("/recipes/retrieve")
+def retrieve_recipes(request: RetrieveRequest, embedder: Embed = Depends(get_embed)):
+    with connect() as conn:
+        return retrieve(conn, embedder, [PantryItem(p.name, p.daysToExpiry) for p in request.pantry],
+                        request.diets, request.allergens, request.limit)
+
+
+app.include_router(internal)

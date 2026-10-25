@@ -1,0 +1,251 @@
+{
+ "date": "2026-10-25",
+ "fetched_at": "2026-10-25T18:08:00+00:00",
+ "raw_files_sha256": {
+  "wikibooks_cuisines.json": "82b59d9702d17b7c035d1a90070c2b1500e6375ec0e38cd2263a876c5178304b",
+  "wikibooks_pages.jsonl": "e493a47c7736871b858b514c88886da5bf13c5a9e05622a008d41261fe1dd046",
+  "themealdb_meals.jsonl": "213a2b8488aeba5787f00b394631323cc737fcd7e44be84edf68bf4543bb0fbb"
+ },
+ "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+ "allergen_dictionary": "2026-10-25.1",
+ "sources": {
+  "wikibooks": {
+   "fetched": 3799,
+   "imported": 3276,
+   "skipped": {
+    "fewer than 2 ingredients": 509,
+    "no ingredients section": 14
+   },
+   "allergen_complete": 594,
+   "diet_labels": {
+    "vegetarian": 303,
+    "vegan": 214,
+    "gluten_free": 157
+   },
+   "with_cuisine": 1555,
+   "ingredients": 25817,
+   "ingredients_with_resolved_quantity": 6513,
+   "top_unknown_allergen_ingredients": [
+    [
+     "oil fat",
+     104
+    ],
+    [
+     "broth",
+     99
+    ],
+    [
+     "wine",
+     96
+    ],
+    [
+     "mustard",
+     93
+    ],
+    [
+     "bacon",
+     88
+    ],
+    [
+     "stock",
+     87
+    ],
+    [
+     "bread",
+     80
+    ],
+    [
+     "mince",
+     73
+    ],
+    [
+     "pasta",
+     68
+    ],
+    [
+     "worcestershire sauce",
+     68
+    ],
+    [
+     "bread crumb",
+     66
+    ],
+    [
+     "dehydrated broth",
+     62
+    ],
+    [
+     "chocolate",
+     55
+    ],
+    [
+     "margarine",
+     52
+    ],
+    [
+     "chili pepper",
+     44
+    ],
+    [
+     "ketchup",
+     43
+    ],
+    [
+     "curry powder",
+     43
+    ],
+    [
+     "sausage",
+     43
+    ],
+    [
+     "bean",
+     41
+    ],
+    [
+     "ham",
+     40
+    ],
+    [
+     "white sugar",
+     38
+    ],
+    [
+     "peanut butter",
+     37
+    ],
+    [
+     "dijon mustard",
+     36
+    ],
+    [
+     "bouillon cube",
+     35
+    ],
+    [
+     "molasses",
+     35
+    ]
+   ]
+  },
+  "themealdb": {
+   "fetched": 791,
+   "imported": 791,
+   "skipped": {},
+   "allergen_complete": 128,
+   "diet_labels": {
+    "vegetarian": 86,
+    "vegan": 7
+   },
+   "with_cuisine": 601,
+   "ingredients": 8145,
+   "ingredients_with_resolved_quantity": 3658,
+   "top_unknown_allergen_ingredients": [
+    [
+     "chicken stock",
+     53
+    ],
+    [
+     "bacon",
+     30
+    ],
+    [
+     "beef stock",
+     30
+    ],
+    [
+     "vegetable stock",
+     26
+    ],
+    [
+     "white wine",
+     25
+    ],
+    [
+     "bread",
+     25
+    ],
+    [
+     "chorizo",
+     24
+    ],
+    [
+     "breadcrumb",
+     24
+    ],
+    [
+     "mustard",
+     21
+    ],
+    [
+     "rice noodle",
+     16
+    ],
+    [
+     "worcestershire sauce",
+     13
+    ],
+    [
+     "oyster sauce",
+     11
+    ],
+    [
+     "sherry",
+     11
+    ],
+    [
+     "curry powder",
+     11
+    ],
+    [
+     "dark chocolate",
+     11
+    ],
+    [
+     "puff pastry",
+     10
+    ],
+    [
+     "hotsauce",
+     10
+    ],
+    [
+     "sausage",
+     10
+    ],
+    [
+     "pita bread",
+     10
+    ],
+    [
+     "lamb mince",
+     9
+    ],
+    [
+     "egg plant",
+     9
+    ],
+    [
+     "bean sprout",
+     9
+    ],
+    [
+     "clear honey",
+     9
+    ],
+    [
+     "tomato ketchup",
+     9
+    ],
+    [
+     "tomato sauce",
+     9
+    ]
+   ]
+  }
+ },
+ "database": {
+  "chunks_unchanged": 4067,
+  "recipes": 4067
+ }
+}

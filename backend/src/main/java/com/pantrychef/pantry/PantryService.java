@@ -3,15 +3,14 @@ package com.pantrychef.pantry;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.pantrychef.alerts.ExpiryAlerts;
 import com.pantrychef.web.ApiException;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -36,17 +35,13 @@ public class PantryService {
 
 	private final JdbcClient db;
 
-	private final Clock clock;
-
-	private final ZoneId zone;
+	private final ExpiryAlerts alerts;
 
 	private final String currency;
 
-	public PantryService(JdbcClient db, Clock clock, @Value("${pantrychef.timezone}") ZoneId zone,
-			@Value("${pantrychef.currency}") String currency) {
+	public PantryService(JdbcClient db, ExpiryAlerts alerts, @Value("${pantrychef.currency}") String currency) {
 		this.db = db;
-		this.clock = clock;
-		this.zone = zone;
+		this.alerts = alerts;
 		this.currency = currency;
 	}
 
@@ -65,8 +60,8 @@ public class PantryService {
 	public record EventResult(Event event, Item item, boolean replayed) {
 	}
 
-	public LocalDate today() {
-		return LocalDate.now(this.clock.withZone(this.zone));
+	private LocalDate today() {
+		return this.alerts.today();
 	}
 
 	public List<Item> list(UUID user) {
@@ -85,7 +80,7 @@ public class PantryService {
 	@Transactional
 	public Item create(UUID user, ItemInput in) {
 		String name = checked(in);
-		return this.db
+		Item created = this.db
 			.sql("INSERT INTO pantry_items (user_id, name, category, quantity_initial, quantity_remaining, unit,"
 					+ " purchase_price, currency_code, purchase_date, expiry_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 					+ " RETURNING " + COLUMNS)
@@ -93,6 +88,8 @@ public class PantryService {
 					in.purchaseDate(), in.expiryDate())
 			.query(this::item)
 			.single();
+		this.alerts.reconcileItem(created.id());
+		return created;
 	}
 
 	/** Replaces the editable fields. A quantity change is a correction: the used/discarded amount is kept. */
@@ -118,7 +115,7 @@ public class PantryService {
 			throw new ApiException(HttpStatus.CONFLICT, "UNIT_LOCKED",
 					"The unit can't change after use was recorded. Add a new item instead.");
 		}
-		return this.db
+		Item updated = this.db
 			.sql("UPDATE pantry_items SET name = ?, category = ?, quantity_initial = ?, quantity_remaining = ?, unit = ?,"
 					+ " purchase_price = ?, purchase_date = ?, expiry_date = ?, version = version + 1, updated_at = now()"
 					+ " WHERE id = ? AND user_id = ? RETURNING " + COLUMNS)
@@ -126,6 +123,8 @@ public class PantryService {
 					in.expiryDate(), id, user)
 			.query(this::item)
 			.single();
+		this.alerts.reconcileItem(id);
+		return updated;
 	}
 
 	/** Soft delete: the item leaves the pantry, its history stays, and it never counts as used or saved. */
@@ -139,6 +138,7 @@ public class PantryService {
 		if (rows == 0) {
 			throw ApiException.notFound();
 		}
+		this.alerts.reconcileItem(id);
 	}
 
 	/**
@@ -188,6 +188,7 @@ public class PantryService {
 			.params(amount, itemId, user)
 			.query(this::item)
 			.single();
+		this.alerts.reconcileItem(itemId);
 		return new EventResult(event.get(), updated, false);
 	}
 

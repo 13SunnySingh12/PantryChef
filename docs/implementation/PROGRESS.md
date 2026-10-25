@@ -4,7 +4,24 @@ Legend: `[✓]` completed and verified · `[→]` in progress · `[ ]` pending �
 
 ## Current state (2026-10-25)
 
-**Loop 5 (expiry alerts) complete and verified locally and in CI. Next: L6 dietary/allergen preferences + eligibility predicate.**
+**Loop 6 (preferences + eligibility) complete and verified locally; CI result recorded below. Next: L7 recipe retrieval — real data blocked by B-01 (dataset + license), code can proceed on synthetic fixtures.**
+
+### Loop 6 — Diet/allergen preferences + eligibility rule (2026-10-25) `[✓]`
+
+- `database/fixtures/eligibility_cases.json`: 18 synthetic cases (expected reason codes)
+- `preferences/Eligibility.java` and `ai-service/app/eligibility.py`: the same fail-closed rule (D-028)
+- `preferences/PreferencesController`: `GET/PUT /api/v1/preferences` (D-029)
+
+| Check | Result |
+|---|---|
+| `mvnw.cmd -B verify` | BUILD SUCCESS — 65 tests, 0 failures (new: EligibilityTests 19, PreferencesTests 3) |
+| `python -m pytest -q` (ai-service) | 20 passed (18 fixture cases + unknown diet + health) |
+| Mutation: drop "incomplete allergen data is unsafe" (Java / Python) | Java 4 failures, Python 3 failed → both restored |
+| Preferences: dedupe + replace, unknown/uppercase/null codes, missing list, >20 entries | 400 with element-level field errors; stored set unchanged |
+| Isolation + logging | Bob sees none of Alice's preferences; "shellfish" never appears in logs |
+| Regression: frontend lint/test; ai-service compile | pass |
+
+Process slip, caught and fixed: during the mutation run the Java and Python backups were named `E.bak` and `e.bak`, which are the same file on Windows, so restoring briefly put the Python text into `Eligibility.java`. It was noticed from the change notice, rewritten from the original source, checked (`head`, mutant markers absent), and the full suite re-run green before commit. Backups now always use distinct names.
 
 ### Loop 5 — Daily expiry scan + in-app alerts (2026-10-25) `[✓]`
 
@@ -123,7 +140,8 @@ Not run yet: deliberate-failure CI run (QA-024, planned for L12); pull-request t
 - [✓] L3 Error envelope + auth (see below)
 - [✓] L4 Pantry CRUD + lifecycle events (see below)
 - [✓] L5 Expiry scheduler + alerts (see below)
-- [ ] L6 Preferences + diet/allergen eligibility — next
+- [✓] L6 Preferences + diet/allergen eligibility (see below)
+- [ ] L7 Recipe ingestion + retrieval — next (real data `[!]` B-01)
 - [✓] A-01…A-08 approved by the user (2026-10-25); B-04 push authorization granted
 - [!] B-01 recipe dataset + license (blocks real RAG/plans/nutrition/cuisine)
 
@@ -151,7 +169,8 @@ Tests executed: **none** (no code exists). Git commits/pushes: **none**.
 | 2026-10-25 | Loop 3 error envelope, request IDs, accounts + JWT |
 | 2026-10-25 | Loop 4 pantry CRUD, lifecycle events, expiry rule |
 | 2026-10-25 | Loop 5 daily expiry scan, live alert reconciliation, alerts API |
+| 2026-10-25 | Loop 6 preferences API, shared eligibility rule + fixture |
 
 ## Next safe action
 
-L6: `GET/PUT /api/v1/preferences` (A-08 diets + allergens, owner-scoped, replace-set semantics) and the shared eligibility predicate (recipe allowed only if allergen metadata is complete and no ingredient carries an excluded allergen; diet label must be present), implemented once in Java and once in Python against the same synthetic fixture table. This can proceed before the recipe dataset (B-01) using synthetic fixtures only.
+L7 needs two user decisions before real recipe suggestions can exist: **B-01** (which recipe dataset, after its license is checked) and **B-02** (embedding model download). Without them, the safe independent work is: internal FastAPI service auth, the retrieval/ranking/citation code and its Spring orchestration, all tested only on clearly-labelled synthetic fixture recipes; no real dataset is ingested and no model is downloaded.

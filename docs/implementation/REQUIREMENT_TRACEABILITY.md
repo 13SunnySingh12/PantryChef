@@ -7,7 +7,7 @@ Status values: **Not implemented** · **Implemented (code evidence)** · **Execu
 | ID | Pri | Requirement [PantryChef.md] | Loop | Planned tests | Depends on | Code | Status |
 |---|---|---|---|---|---|---|---|
 | FR-001 | P0 | Register/login with JWT [§8] | L3 | QA-001, QA-002, QA-021 | — | `backend/…/auth/AuthController.java`, `security/SecurityConfig.java` | Executed and passed (`AuthTests`); limitation D-023 |
-| FR-002 | P0 | Per-user data isolation [§8] | L3–L9 | QA-003, QA-021 | — | `security/CurrentUser.java`; owner-scoped SQL in `pantry/PantryService.java` | Auth, pantry items/events, alerts passed (`AuthTests`, `PantryTests`, `ExpiryAlertTests`); prefs/plans/dashboard pending L6–L9 |
+| FR-002 | P0 | Per-user data isolation [§8] | L3–L9 | QA-003, QA-021 | — | `security/CurrentUser.java`; owner-scoped SQL in `pantry/PantryService.java` | Auth, pantry items/events, alerts, preferences passed (`AuthTests`, `PantryTests`, `ExpiryAlertTests`, `PreferencesTests`); plans/dashboard pending L8–L9 |
 | FR-003 | P0 | Pantry CRUD [§1] | L4 | QA-004, QA-019 | — | `pantry/PantryController.java`, `PantryService.java` | Executed and passed (`PantryTests`) |
 | FR-004 | P0 | Categories incl. explicit `other` [§1] | L4 | QA-004 | — | `pantry/Vocabulary.java`, `category_code` domain | Executed and passed |
 | FR-005 | P0 | used/finished/discarded events [§1] | L4 | QA-005, QA-006 | — | `PantryService.recordEvent` | Executed and passed (atomic, idempotent, concurrent tests); savings side of QA-006 pending L9 |
@@ -16,8 +16,8 @@ Status values: **Not implemented** · **Implemented (code evidence)** · **Execu
 | FR-008 | P0 | In-app alerts by urgency, reconciled [§2] | L5 | QA-007 | — | `alerts/ExpiryAlertController.java` | Executed and passed (sorted, owner-scoped, reconciled on every change) |
 | FR-009 | P0 | Pantry-based RAG suggestions [§3] | L7 | QA-009 | B-01, B-02 | — | Not implemented (real data Blocked by B-01) |
 | FR-010 | P0 | Citations to real stored recipes; versioned idempotent indexing [§3] | L7 | QA-009, QA-025 | B-01, B-02 | — | Not implemented (Blocked by B-01) |
-| FR-011 | P0 | Diet filters everywhere [§5] | L6–L8 | QA-010, QA-011 | A-08 | — | Not implemented |
-| FR-012 | P0 | Allergen exclusions, unknown ≠ safe [§5] | L6–L8 | QA-010, QA-011 | A-08 | — | Not implemented |
+| FR-011 | P0 | Diet filters everywhere [§5] | L6–L8 | QA-010, QA-011 | — | `preferences/Eligibility.java`, `ai-service/app/eligibility.py`, `PreferencesController` | Rule + stored preferences: Executed and passed (fixture parity in both languages); applying it to suggestions/plans pending L7–L8 |
+| FR-012 | P0 | Allergen exclusions, unknown ≠ safe [§5] | L6–L8 | QA-010, QA-011 | — | same as FR-011 | Same status as FR-011; fail-closed rule mutation-tested in both languages |
 | FR-013 | P1 | Cuisine classifier TF-IDF + LR [§4] | L10 | QA-015 | B-01 (labels) | — | Not implemented (Blocked by labelled data) |
 | FR-014 | P1 | Waste-risk predictor [§4] | L10 | QA-016 | A-11, B-03 | — | Not implemented (trained model Blocked by B-03) |
 | FR-015 | P0 | 7-day × 3-meal plan, explicit unavailable slots [§6] | L8 | QA-011 | A-10, B-01 | — | Not implemented |

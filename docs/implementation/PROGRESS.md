@@ -4,7 +4,7 @@ Legend: `[✓]` completed and verified · `[→]` in progress · `[ ]` pending �
 
 ## Current state (2026-10-25)
 
-**Loop 6 (preferences + eligibility) complete and verified locally; CI result recorded below. Next: L7 recipe retrieval — real data blocked by B-01 (dataset + license), code can proceed on synthetic fixtures.**
+**Loop 6 (preferences + eligibility) complete and verified locally and in CI. Next: L7 recipe retrieval — real data blocked by B-01 (dataset + license), code can proceed on synthetic fixtures.**
 
 ### Loop 6 — Diet/allergen preferences + eligibility rule (2026-10-25) `[✓]`
 
@@ -20,6 +20,8 @@ Legend: `[✓]` completed and verified · `[→]` in progress · `[ ]` pending �
 | Preferences: dedupe + replace, unknown/uppercase/null codes, missing list, >20 entries | 400 with element-level field errors; stored set unchanged |
 | Isolation + logging | Bob sees none of Alice's preferences; "shellfish" never appears in logs |
 | Regression: frontend lint/test; ai-service compile | pass |
+
+Commits `b29f641` (feat), `f913ecf` (docs), pushed. CI run [40217580879](https://github.com/13SunnySingh12/PantryChef/actions/runs/40217580879) on `f913ecf`: **success** (all three jobs).
 
 Process slip, caught and fixed: during the mutation run the Java and Python backups were named `E.bak` and `e.bak`, which are the same file on Windows, so restoring briefly put the Python text into `Eligibility.java`. It was noticed from the change notice, rewritten from the original source, checked (`head`, mutant markers absent), and the full suite re-run green before commit. Backups now always use distinct names.
 

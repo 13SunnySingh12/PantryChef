@@ -4,7 +4,7 @@ Legend: `[✓]` completed and verified · `[→]` in progress · `[ ]` pending �
 
 ## Current state (2026-10-25)
 
-**Loop 7 (recipe data + suggestions) complete and verified locally; CI result recorded below. Next: L8 seven-day meal plan + grocery list. Open review item: allergen dictionary (D-031).**
+**Loop 7 (recipe data + suggestions) complete and verified locally and in CI. Next: L8 seven-day meal plan + grocery list. Open review item: allergen dictionary (D-031).**
 
 ### Loop 7 — Licensed recipe data, embeddings, retrieval, suggestions (2026-10-25/26) `[✓]`
 
@@ -27,6 +27,8 @@ Legend: `[✓]` completed and verified · `[→]` in progress · `[ ]` pending �
 | Mutations | backend re-check removed → failed; expiry weight 0 → **first survived** (alphabetical tie-break hid it), test rewritten, then failed; JDK h2c upgrade restored → failed |
 | End-to-end (DB + FastAPI + backend jar + curl) | First run: **504 timeouts** — the JDK client's h2c upgrade header is never answered by uvicorn (my test stub ignored it). Fixed with HTTP/1.1 + a stub assertion. Second run: suggestions with permanent Wikibooks revision links and CC BY-SA credit; vegetarian + no dairy/peanuts excluded 638; direct AI call without token → 401; AI stopped → 503; 0 secrets in logs |
 | `pip-audit` | **Found** `setuptools 78.1.0` and `filelock 3.32.3` advisories (stale copies from the PyTorch index) → upgraded to 84.2.1 / 4.2.4, re-locked; now no known vulnerabilities; torch base version audited separately (clean) |
+
+Commits `f0698c9`, `9671ffe`, `419f8cb`, `12a5cc7`, `a79fc57`, `d940cb0`, pushed. CI run [40319658053](https://github.com/13SunnySingh12/PantryChef/actions/runs/40319658053) on `d940cb0`: **success** — frontend 11 s, backend 55 s, ai-service 1 min 49 s (CPU torch install + pgvector integration tests + both audits).
 
 Not done here: nutrition import from USDA FDC (L9, needs a free data.gov key or the bulk download); the cuisine classifier (L10); the optional TheMealDB `strArea` normalization (L10).
 

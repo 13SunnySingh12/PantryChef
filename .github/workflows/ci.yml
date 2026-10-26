@@ -59,6 +59,10 @@ jobs:
           cache: pip
           cache-dependency-path: ai-service/requirements.txt
       - run: python -m pip install -r requirements.txt
-      - run: python -m compileall -q app
+      - run: python -m compileall -q app scripts
+      # Integration tests start a throwaway pgvector container (Docker is available on the runner) and use a
+      # deterministic stand-in embedder, so CI never downloads the embedding model.
       - run: python -m pytest -q
       - run: python -m pip install pip-audit==2.10.1 && pip-audit -r requirements.txt
+      # pip-audit cannot look up the "+cpu" torch build, so also audit the matching upstream version.
+      - run: grep '^torch==' requirements.txt | sed 's/+cpu//' > /tmp/torch.txt && pip-audit --disable-pip --no-deps -r /tmp/torch.txt

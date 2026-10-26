@@ -52,10 +52,35 @@ AI service (Windows: `.venv\Scripts\python`):
 cd ai-service && python -m venv .venv && .venv/bin/python -m pip install -r requirements.txt && .venv/bin/python -m pytest -q
 ```
 
+## Recipe data (one-time, after the backend has created the schema)
+
+Recipes come from the Wikibooks Cookbook (CC BY-SA 4.0) and TheMealDB (development/educational test key); see
+[docs/implementation/DATA_SOURCE_OPTIONS.md](docs/implementation/DATA_SOURCE_OPTIONS.md). Raw downloads stay in
+`ai-service/data/` (git-ignored). The AI service reads the database as a read-only role, `pantrychef_ai`. The
+migration creates it without a password, so give it one locally. Use the same value as in `AI_DATABASE_URL` in your
+`.env`:
+
+```bash
+docker compose exec db psql -U pantrychef -d pantrychef -c "ALTER ROLE pantrychef_ai LOGIN PASSWORD 'your-local-password'"
+```
+
+Then download the sources (about 4 minutes) and import them. The import downloads the embedding model
+`sentence-transformers/all-MiniLM-L6-v2` (about 91 MB) once, and needs `INGEST_DATABASE_URL` in `.env`:
+
+```bash
+cd ai-service && .venv/bin/python scripts/fetch_sources.py && .venv/bin/python scripts/import_recipes.py
+```
+
+Re-running the import is safe: unchanged recipes are not re-embedded.
+
 ## Run locally
 
 - Frontend: `cd frontend && npm run dev`
 - Backend (after `docker compose up -d`): `cd backend && ./mvnw spring-boot:run`
-- AI service: `cd ai-service && .venv/bin/python -m uvicorn app.main:app --reload`
+- AI service (needs `AI_DATABASE_URL` and `SERVICE_TO_SERVICE_SECRET`; the backend needs the same secret): `cd ai-service && .venv/bin/python -m uvicorn app.main:app --port 8000`
+
+Allergen and diet information is derived from the recipe sources plus a reviewed ingredient list
+(`database/reference/ingredient_allergens.json`). It can be incomplete, and PantryChef does not guarantee that a recipe
+is safe for an allergy.
 
 CI (`.github/workflows/ci.yml`) runs these checks plus `npm audit` and `pip-audit` on every push to `main` and every pull request.

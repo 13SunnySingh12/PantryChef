@@ -14,14 +14,14 @@ Status values: **Not implemented** · **Implemented (code evidence)** · **Execu
 | FR-006 | P0 | Daily idempotent expiry scan [§2] | L5 | QA-007 | — | `alerts/ExpiryAlerts.java` (`@Scheduled` + startup) | Executed and passed (`ExpiryAlertTests`: reruns, parallel scans); startup scan verified in a real run |
 | FR-007 | P0 | Flag expired items [§2] | L5 | QA-008 | — | `pantry/Expiry.java`, `expiryStatus` on items, `expired` alerts | Executed and passed (`ExpiryTests`, `ExpiryAlertTests`) |
 | FR-008 | P0 | In-app alerts by urgency, reconciled [§2] | L5 | QA-007 | — | `alerts/ExpiryAlertController.java` | Executed and passed (sorted, owner-scoped, reconciled on every change) |
-| FR-009 | P0 | Pantry-based RAG suggestions [§3] | L7 | QA-009 | B-01, B-02 | — | Not implemented (real data Blocked by B-01) |
-| FR-010 | P0 | Citations to real stored recipes; versioned idempotent indexing [§3] | L7 | QA-009, QA-025 | B-01, B-02 | — | Not implemented (Blocked by B-01) |
-| FR-011 | P0 | Diet filters everywhere [§5] | L6–L8 | QA-010, QA-011 | — | `preferences/Eligibility.java`, `ai-service/app/eligibility.py`, `PreferencesController` | Rule + stored preferences: Executed and passed (fixture parity in both languages); applying it to suggestions/plans pending L7–L8 |
-| FR-012 | P0 | Allergen exclusions, unknown ≠ safe [§5] | L6–L8 | QA-010, QA-011 | — | same as FR-011 | Same status as FR-011; fail-closed rule mutation-tested in both languages |
+| FR-009 | P0 | Pantry-based RAG suggestions [§3] | L7 | QA-009 | — | `ai-service/app/retrieval.py`, `backend/…/recipes/RecipeController.java`, `AiClient.java` | Executed and passed (`test_retrieval_api.py`, `RecipeSuggestionTests`) + real end-to-end run on 4,067 imported recipes |
+| FR-010 | P0 | Citations to real stored recipes; versioned idempotent indexing [§3] | L7 | QA-009, QA-025 | — | `ai-service/app/importer.py`, `sources.py`, V2 migration, `database/imports/` | Executed and passed: every result is a stored recipe with URL/license/attribution; re-import embeds nothing (tests + real 4,067-recipe re-run) |
+| FR-011 | P0 | Diet filters everywhere [§5] | L6–L8 | QA-010, QA-011 | — | `preferences/Eligibility.java`, `ai-service/app/eligibility.py`, `PreferencesController`, retrieval + backend re-check | Suggestions: Executed and passed (AI filter + backend re-check, mutation-tested); meal plans pending L8 |
+| FR-012 | P0 | Allergen exclusions, unknown ≠ safe [§5] | L6–L8 | QA-010, QA-011 | D-031 review | same as FR-011 + `database/reference/ingredient_allergens.json` | Suggestions: Executed and passed (unknown allergen data excluded; 722/4,067 recipes allergen-complete); dictionary pending owner review; meal plans pending L8 |
 | FR-013 | P1 | Cuisine classifier TF-IDF + LR [§4] | L10 | QA-015 | B-01 (labels) | — | Not implemented (Blocked by labelled data) |
 | FR-014 | P1 | Waste-risk predictor [§4] | L10 | QA-016 | A-11, B-03 | — | Not implemented (trained model Blocked by B-03) |
 | FR-015 | P0 | 7-day × 3-meal plan, explicit unavailable slots [§6] | L8 | QA-011 | A-10, B-01 | — | Not implemented |
-| FR-016 | P0 | Near-expiry prioritization score [§3, §6] | L7–L8 | QA-009, QA-026 | — | — | Not implemented |
+| FR-016 | P0 | Near-expiry prioritization score [§3, §6] | L7–L8 | QA-009, QA-026 | — | `retrieval.py` (D-032 formula) | Suggestions: Executed and passed (equal-coverage test where only the expiry boost can decide; mutation with boost weight 0 fails it; deterministic repeat test); meal plans pending L8 |
 | FR-017 | P0 | Grocery list = plan − pantry, compatible units only [§6] | L8 | QA-012 | A-04 | — | Not implemented |
 | FR-018 | P0 | Persisted, owner-scoped check-off [§6] | L8 | QA-012, QA-003 | — | — | Not implemented |
 | FR-019 | P1 | Waste-saved metric [§7] | L9 | QA-006 | A-06 | — | Not implemented |
@@ -39,9 +39,9 @@ Status values: **Not implemented** · **Implemented (code evidence)** · **Execu
 |---|---|---|---|
 | NFR-001 | Secure authn/authz, hashes only | QA-001, QA-003, QA-021 | Authn: Executed and passed; authz per resource pending |
 | NFR-002 | Privacy / sanitized logs | Log review + tests asserting no token/password in logs | Auth paths passed (`logsNeverContainPasswordsOrTokens` + real-run log grep) |
-| NFR-003 | Free-core, no paid fallback | QA-018; dependency review | Not implemented |
+| NFR-003 | Free-core, no paid fallback | QA-018; dependency review | Implemented so far: local embeddings, free sources, no LLM/provider SDK in any manifest; QA-018 n/a while no LLM exists (D-014) |
 | NFR-004 | Local reproducibility | ROAD-033 clean-setup run | Not implemented |
-| NFR-005 | Predictable failures, safe errors | QA-017 | Envelope passed (`ApiErrorsTests`); downstream timeouts pending L7 |
+| NFR-005 | Predictable failures, safe errors | QA-017 | Executed and passed: envelope (`ApiErrorsTests`), AI down/slow/500 → 503/504/502 (`RecipeSuggestionTests` + real run with the AI service stopped), DB outage and missing model → 503 in the AI service |
 | NFR-006 | Maintainability, pinned deps, contracts | Lockfiles, OpenAPI | Not implemented |
 | NFR-007 | Accessibility | Frontend interaction tests, keyboard pass, Impeccable audit | Not implemented |
 | NFR-008 | Responsive usability | Viewport checks (mobile/tablet/desktop) | Not implemented |

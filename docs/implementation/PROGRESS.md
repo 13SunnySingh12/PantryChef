@@ -4,7 +4,31 @@ Legend: `[✓]` completed and verified · `[→]` in progress · `[ ]` pending �
 
 ## Current state (2026-10-25)
 
-**Loop 6 (preferences + eligibility) complete and verified locally and in CI. Next: L7 recipe retrieval — real data blocked by B-01 (dataset + license), code can proceed on synthetic fixtures.**
+**Loop 7 (recipe data + suggestions) complete and verified locally; CI result recorded below. Next: L8 seven-day meal plan + grocery list. Open review item: allergen dictionary (D-031).**
+
+### Loop 7 — Licensed recipe data, embeddings, retrieval, suggestions (2026-10-25/26) `[✓]`
+
+- User approved (2026-10-25): Wikibooks Cookbook + TheMealDB + USDA FDC + all-MiniLM-L6-v2 + allergen dictionary (`DATA_SOURCE_OPTIONS.md`)
+- V2 migration: `vector` extension, `recipe_chunks vector(384)`, `recipes.attribution` / `allergen_source`, read-only role `pantrychef_ai` (D-034)
+- AI service: `scripts/fetch_sources.py`, `scripts/import_recipes.py`, `app/sources.py`, `app/ingredients.py`, `app/importer.py`, `app/embeddings.py`, `app/retrieval.py`, `POST /internal/v1/recipes/retrieve` behind `X-Service-Token` (D-030, D-032)
+- Allergen dictionary `database/reference/ingredient_allergens.json` (D-031, **pending your review**)
+- Backend: `recipes/AiClient`, `recipes/RecipeController` → `GET /api/v1/recipes/suggestions` with DB re-check of every AI result (D-033)
+- CI: ai-service job runs DB integration tests (Docker on the runner), compiles scripts, audits torch's upstream version separately
+
+| Check | Result |
+|---|---|
+| Fetch (2026-10-25) | 3,799 Wikibooks pages, 791 TheMealDB meals; manifest with SHA-256 |
+| Dry-run parse (first) | Found and fixed: technique links taken as ingredients, "1⁄2" fraction slash, descriptors before units ("6 medium cloves"), U+2028 breaking line splitting, "curry leaves" → "curry", glued "200g" |
+| Import into a throwaway compose DB | 4,067 recipes (3,276 Wikibooks after skipping 523 pages without a usable ingredient list + 791 TheMealDB), 33,962 ingredient rows, 4,067 embeddings, 41 MB; 722 allergen-complete |
+| Re-import | `chunks_unchanged: 4067`, no new embeddings, counts identical |
+| Real retrieval as `pantrychef_ai` | 100–400 ms; spinach expiring tomorrow ranks spinach dishes first; dairy exclusion removed 582 candidates, all results allergen-complete |
+| `python -m pytest -q` | 93 passed (incl. 16 DB integration tests on a throwaway pgvector container) |
+| `mvnw.cmd -B verify` | BUILD SUCCESS — 73 tests (new: RecipeSuggestionTests 6, SchemaConstraintsTests +2) |
+| Mutations | backend re-check removed → failed; expiry weight 0 → **first survived** (alphabetical tie-break hid it), test rewritten, then failed; JDK h2c upgrade restored → failed |
+| End-to-end (DB + FastAPI + backend jar + curl) | First run: **504 timeouts** — the JDK client's h2c upgrade header is never answered by uvicorn (my test stub ignored it). Fixed with HTTP/1.1 + a stub assertion. Second run: suggestions with permanent Wikibooks revision links and CC BY-SA credit; vegetarian + no dairy/peanuts excluded 638; direct AI call without token → 401; AI stopped → 503; 0 secrets in logs |
+| `pip-audit` | **Found** `setuptools 78.1.0` and `filelock 3.32.3` advisories (stale copies from the PyTorch index) → upgraded to 84.2.1 / 4.2.4, re-locked; now no known vulnerabilities; torch base version audited separately (clean) |
+
+Not done here: nutrition import from USDA FDC (L9, needs a free data.gov key or the bulk download); the cuisine classifier (L10); the optional TheMealDB `strArea` normalization (L10).
 
 ### Loop 6 — Diet/allergen preferences + eligibility rule (2026-10-25) `[✓]`
 
@@ -143,7 +167,9 @@ Not run yet: deliberate-failure CI run (QA-024, planned for L12); pull-request t
 - [✓] L4 Pantry CRUD + lifecycle events (see below)
 - [✓] L5 Expiry scheduler + alerts (see below)
 - [✓] L6 Preferences + diet/allergen eligibility (see below)
-- [ ] L7 Recipe ingestion + retrieval — next (real data `[!]` B-01)
+- [✓] L7 Recipe ingestion + retrieval + suggestions (see below)
+- [!] Review `database/reference/ingredient_allergens.json` (D-031)
+- [ ] L8 Meal plan + grocery list — next
 - [✓] A-01…A-08 approved by the user (2026-10-25); B-04 push authorization granted
 - [!] B-01 recipe dataset + license (blocks real RAG/plans/nutrition/cuisine)
 
@@ -172,7 +198,9 @@ Tests executed: **none** (no code exists). Git commits/pushes: **none**.
 | 2026-10-25 | Loop 4 pantry CRUD, lifecycle events, expiry rule |
 | 2026-10-25 | Loop 5 daily expiry scan, live alert reconciliation, alerts API |
 | 2026-10-25 | Loop 6 preferences API, shared eligibility rule + fixture |
+| 2026-10-25 | Data-source research and approval |
+| 2026-10-26 | Loop 7 recipe import, embeddings, retrieval, suggestions |
 
 ## Next safe action
 
-L7 needs two user decisions before real recipe suggestions can exist: **B-01** (which recipe dataset, after its license is checked) and **B-02** (embedding model download). Without them, the safe independent work is: internal FastAPI service auth, the retrieval/ranking/citation code and its Spring orchestration, all tested only on clearly-labelled synthetic fixture recipes; no real dataset is ingested and no model is downloaded.
+L8: seven-day meal plan (21 slots, explicit unavailable slots with reasons, eligibility applied before persistence, near-expiry preference, no overwrite on regeneration, idempotency key) and grocery list (plan ingredients minus usable stock in approved units; everything else listed as unresolved) with persisted check-off. Open decision from A-10: plan start date (proposed: the day of generation).

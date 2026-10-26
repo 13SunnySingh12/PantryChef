@@ -1,5 +1,7 @@
+import asyncio
 import hmac
 import logging
+from contextlib import asynccontextmanager
 from typing import Literal
 
 from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Request
@@ -14,7 +16,19 @@ from app.retrieval import PantryItem, retrieve
 
 log = logging.getLogger("pantrychef.ai")
 
-app = FastAPI(title="PantryChef AI service")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Load the embedding model before serving, so the first request is not slow. A failure is not fatal:
+    # retrieval then answers 503 MODEL_UNAVAILABLE and other routes keep working.
+    try:
+        await asyncio.to_thread(embed, ["warm up"])
+    except Exception as exc:  # noqa: BLE001
+        log.warning("Embedding model not loaded at startup: %s", type(exc).__name__)
+    yield
+
+
+app = FastAPI(title="PantryChef AI service", lifespan=lifespan)
 
 
 def require_service_token(x_service_token: str | None = Header(default=None)) -> None:
@@ -86,8 +100,12 @@ def get_embed() -> Embed:
 @internal.post("/recipes/retrieve")
 def retrieve_recipes(request: RetrieveRequest, embedder: Embed = Depends(get_embed)):
     with connect() as conn:
-        return retrieve(conn, embedder, [PantryItem(p.name, p.daysToExpiry) for p in request.pantry],
-                        request.diets, request.allergens, request.limit)
+        try:
+            return retrieve(conn, embedder, [PantryItem(p.name, p.daysToExpiry) for p in request.pantry],
+                            request.diets, request.allergens, request.limit)
+        except (OSError, RuntimeError) as exc:
+            log.warning("Retrieval unavailable: %s", type(exc).__name__)
+            raise HTTPException(503, detail=("MODEL_UNAVAILABLE", "Recipe search is not ready.")) from exc
 
 
 app.include_router(internal)

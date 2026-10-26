@@ -70,15 +70,18 @@ def test_results_cite_stored_recipes_with_matched_and_missing(client, database):
 
 
 def test_near_expiry_stock_ranks_an_otherwise_equal_recipe_higher(client):
-    # Spinach Rice and Tomato Rice both match 3 of 4 ingredients; only spinach expires soon.
-    pantry = [{"name": "spinach", "daysToExpiry": 1}, {"name": "tomato", "daysToExpiry": 30},
+    # Spinach Rice and Tomato Rice both match 3 of 4 ingredients. Only tomato expires soon, so Tomato Rice must
+    # win even though the alphabetical tie-break would put Spinach Rice first.
+    pantry = [{"name": "spinach", "daysToExpiry": 30}, {"name": "tomato", "daysToExpiry": 1},
               {"name": "rice"}, {"name": "onion"}]
-    results = ask(client, pantry).json()["results"]
-    order = [r["title"] for r in results]
-    assert order.index("Fixture Spinach Rice") < order.index("Fixture Tomato Rice")
-    spinach_rice = results[order.index("Fixture Spinach Rice")]
-    assert spinach_rice["usesExpiringItems"] == ["spinach"]
-    assert spinach_rice["ranking"]["expiryBoost"] == 0.75
+    results = {r["title"]: r for r in ask(client, pantry).json()["results"]}
+    order = list(results)
+    tomato, spinach = results["Fixture Tomato Rice"], results["Fixture Spinach Rice"]
+    assert order.index("Fixture Tomato Rice") < order.index("Fixture Spinach Rice")
+    assert tomato["ranking"]["coverage"] == spinach["ranking"]["coverage"] == 0.75
+    assert tomato["ranking"]["score"] > spinach["ranking"]["score"]
+    assert tomato["usesExpiringItems"] == ["tomato"] and tomato["ranking"]["expiryBoost"] == 0.75
+    assert spinach["usesExpiringItems"] == [] and spinach["ranking"]["expiryBoost"] == 0.0
 
 
 def test_expired_items_are_not_offered_as_stock(client):
@@ -156,3 +159,13 @@ def test_service_role_cannot_read_user_data(database):
         assert conn.execute("SELECT count(*) FROM recipes").fetchone()[0] >= 5
         with pytest.raises(psycopg.errors.InsufficientPrivilege):
             conn.execute("SELECT count(*) FROM users")
+
+
+def test_model_failure_is_a_safe_503(client):
+    def broken(texts):
+        raise RuntimeError("model files missing")
+
+    app.dependency_overrides[get_embed] = lambda: broken
+    response = ask(client, [{"name": "rice"}])
+    assert response.status_code == 503
+    assert response.json()["error"]["code"] == "MODEL_UNAVAILABLE"

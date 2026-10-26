@@ -12,7 +12,10 @@ Embed = Callable[[Sequence[str]], list[list[float]]]
 def _model():
     from sentence_transformers import SentenceTransformer  # heavy import, only when embeddings are needed
 
-    model = SentenceTransformer(EMBEDDING_MODEL_ID, device="cpu")
+    try:  # use the local cache when present: no network call on every start
+        model = SentenceTransformer(EMBEDDING_MODEL_ID, device="cpu", local_files_only=True)
+    except OSError:
+        model = SentenceTransformer(EMBEDDING_MODEL_ID, device="cpu")
     dimensions = model.get_embedding_dimension()
     if dimensions != EMBEDDING_DIMENSIONS:
         raise RuntimeError(f"{EMBEDDING_MODEL_ID} returned {dimensions} dimensions, schema expects {EMBEDDING_DIMENSIONS}")

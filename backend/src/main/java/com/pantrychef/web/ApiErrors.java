@@ -16,6 +16,7 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
@@ -52,6 +53,16 @@ public class ApiErrors {
 	ResponseEntity<Body> invalid(MethodArgumentNotValidException ex) {
 		Map<String, String> fields = new LinkedHashMap<>();
 		ex.getBindingResult().getFieldErrors().forEach((e) -> fields.putIfAbsent(e.getField(), e.getDefaultMessage()));
+		return ResponseEntity.badRequest()
+			.body(body("VALIDATION_ERROR", "Check the highlighted fields and try again.", fields));
+	}
+
+	@ExceptionHandler(HandlerMethodValidationException.class)
+	ResponseEntity<Body> invalidParameter(HandlerMethodValidationException ex) {
+		Map<String, String> fields = new LinkedHashMap<>();
+		ex.getParameterValidationResults()
+			.forEach((r) -> fields.putIfAbsent(r.getMethodParameter().getParameterName(),
+					r.getResolvableErrors().get(0).getDefaultMessage()));
 		return ResponseEntity.badRequest()
 			.body(body("VALIDATION_ERROR", "Check the highlighted fields and try again.", fields));
 	}

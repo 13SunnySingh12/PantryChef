@@ -21,9 +21,16 @@ UNIT_WORDS = {
     "dozen": "dozen", "bunch": "bunch", "bunches": "bunch",
     "pack": "pack", "packs": "pack", "packet": "pack", "packets": "pack", "package": "pack", "packages": "pack",
 }
+# Converted at import (approved 2026-10-29): exact avoirdupois mass, and US kitchen measures for volume.
+CONVERTED_UNITS = {
+    **dict.fromkeys(["oz", "ounce", "ounces"], ("g", 28.349523125)),
+    **dict.fromkeys(["lb", "lbs", "pound", "pounds"], ("g", 453.59237)),
+    **dict.fromkeys(["tsp", "tsps", "teaspoon", "teaspoons"], ("ml", 4.92892159375)),
+    **dict.fromkeys(["tbsp", "tbs", "tbsps", "tablespoon", "tablespoons"], ("ml", 14.78676478125)),
+    **dict.fromkeys(["cup", "cups", "c"], ("ml", 236.5882365)),
+}
 OTHER_UNITS = {
-    "cup", "cups", "c", "tbsp", "tbs", "tbsps", "tablespoon", "tablespoons", "tsp", "tsps", "teaspoon", "teaspoons",
-    "oz", "ounce", "ounces", "lb", "lbs", "pound", "pounds", "pinch", "pinches", "dash", "dashes", "clove", "cloves",
+    "pinch", "pinches", "dash", "dashes", "clove", "cloves",
     "can", "cans", "tin", "tins", "slice", "slices", "stick", "sticks", "sprig", "sprigs", "handful", "handfuls",
     "piece", "pieces", "head", "heads", "jar", "jars", "bottle", "bottles", "drop", "drops", "pint", "pints",
     "quart", "quarts", "fl", "dl", "cl", "inch", "inches", "cm", "knob", "stalk", "stalks", "container",
@@ -68,7 +75,8 @@ def normalize(text: str) -> str:
         text = text.replace(symbol, " " + ascii_fraction + " ")
     text = re.sub(r"\(.*?\)", " ", text).split(",")[0]
     words = [w for w in re.sub(r"[^a-z0-9 /'-]", " ", text).replace("-", " ").split()
-             if not w[0].isdigit() and w not in DESCRIPTORS and w not in UNIT_WORDS and w not in OTHER_UNITS]
+             if not w[0].isdigit() and w not in DESCRIPTORS and w not in UNIT_WORDS and w not in OTHER_UNITS
+             and w not in CONVERTED_UNITS]
     if not words:
         return ""
     words[-1] = singular(words[-1])
@@ -76,8 +84,9 @@ def normalize(text: str) -> str:
 
 
 def parse_quantity(text: str) -> tuple[float | None, str | None, str]:
-    """Leading amount and approved unit, plus the rest of the text. Unknown units give (None, None, text):
-    no quantity is ever guessed. A bare count ("2 eggs") is a piece count."""
+    """Leading amount and approved unit, plus the rest of the text. oz/lb become g and US tsp/tbsp/cup become ml
+    (CONVERTED_UNITS); other units give (None, None, text): no quantity is ever guessed. A bare count ("2 eggs")
+    is a piece count."""
     text = text.replace("⁄", "/")
     for symbol, ascii_fraction in UNICODE_FRACTIONS.items():
         text = text.replace(symbol, " " + ascii_fraction)
@@ -92,6 +101,9 @@ def parse_quantity(text: str) -> tuple[float | None, str | None, str]:
     first = words[position].lower().strip(".,") if position < len(words) else ""
     if first in UNIT_WORDS:
         return amount, UNIT_WORDS[first], " ".join(words[:position] + words[position + 1:])
+    if first in CONVERTED_UNITS:
+        unit, factor = CONVERTED_UNITS[first]
+        return round(amount * factor, 3), unit, " ".join(words[:position] + words[position + 1:])
     if first in OTHER_UNITS or not rest:
         return None, None, rest
     return amount, "piece", rest

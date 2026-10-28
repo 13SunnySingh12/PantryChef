@@ -46,7 +46,7 @@ def test_wikibooks_recipe_keeps_source_license_and_parsed_ingredients():
     paneer = recipe["ingredients"][3]
     assert (paneer["quantity"], paneer["unit"], paneer["allergens"]) == (200.0, "g", ["dairy"])
     oil = recipe["ingredients"][0]
-    assert (oil["quantity"], oil["unit"]) == (None, None)
+    assert (oil["quantity"], oil["unit"]) == (14.787, "ml")  # 1 tablespoon (US)
     assert recipe["allergen_metadata_complete"] is True
     assert recipe["instructions"] == "Heat the oil.\nAdd potatoes and cook."
 
@@ -97,7 +97,7 @@ def test_mealdb_recipe_credits_source_and_keeps_measures_as_text():
     assert recipe["diet_labels"] == ["vegetarian"]
     lentils, turmeric, ghee = recipe["ingredients"]
     assert (lentils["normalized"], lentils["quantity"], lentils["unit"]) == ("red lentil", 250.0, "g")
-    assert (turmeric["quantity"], turmeric["unit"]) == (None, None)
+    assert (turmeric["quantity"], turmeric["unit"]) == (4.929, "ml")  # 1 tsp (US)
     assert ghee["allergens"] == ["dairy"]
     assert recipe["allergen_metadata_complete"] is True
 

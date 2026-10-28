@@ -2,15 +2,16 @@ import asyncio
 import hmac
 import logging
 from contextlib import asynccontextmanager
-from typing import Literal
+from pathlib import Path
+from typing import Annotated, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
-from app import planner
+from app import cuisine, planner
 from app.config import setting
 from app.db import connect
 from app.embeddings import Embed, embed
@@ -149,6 +150,49 @@ def generate_plan(request: PlanRequest, embedder: Embed = Depends(get_embed)):
 def compute_grocery(request: GroceryRequest):
     with connect() as conn:
         return planner.grocery_for(conn, [str(i) for i in request.recipeIds], _stock(request.pantry))
+
+
+Ingredient = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=100)]
+
+
+class CuisineRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    ingredients: list[Ingredient] = Field(min_length=1, max_length=100)
+
+
+def model_dir() -> Path:
+    return Path(setting("MODEL_DIR") or Path(__file__).resolve().parents[1] / "models")
+
+
+@internal.post("/cuisine/classify")
+def classify_cuisine(request: CuisineRequest):
+    try:
+        model, card = cuisine.load(model_dir())
+    except cuisine.ModelUnavailable as exc:
+        log.warning("Cuisine model unavailable: %s", exc)
+        raise HTTPException(503, detail=("MODEL_UNAVAILABLE", "The cuisine model is not available.")) from exc
+    return cuisine.classify(model, card, request.ingredients)
+
+
+Category = Literal["dairy", "vegetables", "fruits", "grains", "meat", "seafood", "bakery", "beverages", "condiments",
+                   "frozen", "snacks", "other"]
+
+
+class WasteRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    daysToExpiry: int | None = Field(default=None, ge=-3650, le=3650)
+    quantityRemaining: float = Field(ge=0, le=1_000_000_000)
+    unit: Unit
+    category: Category
+    usedFraction: float = Field(ge=0, le=1)
+
+
+@internal.post("/waste/predict")
+def predict_waste(request: WasteRequest):
+    # No waste model exists: training needs real labelled outcomes (items that were thrown away vs used up), and
+    # PantryChef has no such history yet (A-11, B-03). Say so instead of returning a made-up risk.
+    return {"status": "insufficient_data", "riskLabel": None, "riskScore": None, "modelVersion": None,
+            "reason": "No waste-risk model has been trained yet: there is not enough recorded usage history."}
 
 
 app.include_router(internal)

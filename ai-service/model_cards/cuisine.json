@@ -1,0 +1,318 @@
+{
+ "name": "cuisine",
+ "version": "20261028223845",
+ "algorithm": "TF-IDF + LogisticRegression",
+ "scikit_learn": "1.9.1",
+ "model_file": "cuisine-20261028223845.joblib",
+ "model_sha256": "35ef5f5b8cfe7820ef9f8f66b5cfc8077567e90ae132111311953925759fd1d8",
+ "training_data": {
+  "fetched_at": "2026-10-25T18:08:00+00:00",
+  "raw_files_sha256": {
+   "wikibooks_cuisines.json": "82b59d9702d17b7c035d1a90070c2b1500e6375ec0e38cd2263a876c5178304b",
+   "wikibooks_pages.jsonl": "e493a47c7736871b858b514c88886da5bf13c5a9e05622a008d41261fe1dd046",
+   "themealdb_meals.jsonl": "213a2b8488aeba5787f00b394631323cc737fcd7e44be84edf68bf4543bb0fbb"
+  }
+ },
+ "label_aliases": {
+  "United States": "American",
+  "Southwestern": "American",
+  "Native American": "American",
+  "Canadian": "Canadian",
+  "England": "British",
+  "English": "British",
+  "British": "British",
+  "Scottish": "British",
+  "Welsh": "British",
+  "France": "French",
+  "India": "Indian",
+  "Italy": "Italian",
+  "Spain": "Spanish",
+  "Mexico": "Mexican",
+  "China": "Chinese",
+  "Japan": "Japanese",
+  "Thailand": "Thai",
+  "Turkey": "Turkish",
+  "Norway": "Norwegian",
+  "Netherlands": "Dutch",
+  "Argentina": "Argentine",
+  "Venezuela": "Venezuelan",
+  "Slovakia": "Slovak",
+  "National Nigerian": "Nigerian",
+  "Hausa": "Nigerian",
+  "Yoruba": "Nigerian",
+  "Igbo": "Nigerian"
+ },
+ "excluded_labels": [
+  "African",
+  "Asian",
+  "Caribbean",
+  "European",
+  "Family heritage",
+  "Jewish",
+  "Mediterranean",
+  "Middle Eastern",
+  "Pacific",
+  "South Asian",
+  "West Asian"
+ ],
+ "min_class_examples": 30,
+ "data": {
+  "labelled_unique_ingredient_lists": 1977,
+  "dropped_conflicting_duplicates": 9,
+  "dropped_small_classes": {
+   "Afghan": 2,
+   "Albanian": 13,
+   "Algerian": 28,
+   "Alsatian": 4,
+   "Argentine": 13,
+   "Armenian": 2,
+   "Australian": 25,
+   "Austrian": 20,
+   "Azerbaijani": 1,
+   "Belgian": 5,
+   "Bengali": 3,
+   "Brazilian": 10,
+   "Bulgarian": 13,
+   "Burmese": 1,
+   "Cameroonian": 9,
+   "Chadian": 5,
+   "Chilean": 1,
+   "Colombian": 7,
+   "Cornish": 7,
+   "Croatian": 9,
+   "Cuban": 6,
+   "Cypriot": 1,
+   "Czech": 1,
+   "Danish": 8,
+   "Dominican": 3,
+   "Dutch": 18,
+   "East Asian": 4,
+   "Efik": 1,
+   "Estonian": 1,
+   "Ethiopian": 27,
+   "Finnish": 5,
+   "Gambian": 14,
+   "German": 16,
+   "Ghanaian": 3,
+   "Ghanian": 2,
+   "Gibraltarian": 5,
+   "Greek": 19,
+   "Hawaiian": 2,
+   "Hungarian": 10,
+   "Icelandic": 1,
+   "Indonesian": 19,
+   "Iranian": 6,
+   "Iraqi": 1,
+   "Irish": 18,
+   "Israeli": 7,
+   "Jewish Yemenite": 8,
+   "Jordanian": 1,
+   "Kenyan": 9,
+   "Korean": 7,
+   "Lebanese": 3,
+   "Liberian": 14,
+   "Libyan": 14,
+   "Lithuanian": 2,
+   "Malawian": 5,
+   "Malaysian": 19,
+   "Maltese": 1,
+   "Manx": 2,
+   "Mongolian": 1,
+   "Moroccan": 11,
+   "Nepali": 3,
+   "New Zealand": 1,
+   "North African": 1,
+   "North American": 7,
+   "Northern Irish": 2,
+   "Norwegian": 21,
+   "Palestinian": 2,
+   "Panamanian": 1,
+   "Peruvian": 9,
+   "Portuguese": 10,
+   "Puerto Rican": 3,
+   "Romanian": 5,
+   "Russian": 15,
+   "Rwandan": 19,
+   "Sabbath": 2,
+   "Saudi Arabian": 12,
+   "Senegalese": 6,
+   "Serbian": 2,
+   "Slovak": 4,
+   "Somali": 2,
+   "South African": 7,
+   "South American": 2,
+   "Southeast Asian": 2,
+   "Sudanese": 3,
+   "Surinamese": 2,
+   "Swedish": 11,
+   "Swiss": 3,
+   "Sylheti": 2,
+   "Syrian": 5,
+   "Taiwanese": 2,
+   "Tanzanian": 4,
+   "Tibetan": 1,
+   "Tiv": 7,
+   "Togolese": 2,
+   "Trinidadian and Tobagonian": 2,
+   "Tunisian": 8,
+   "Ugandan": 10,
+   "Ukrainian": 9,
+   "Uruguayan": 9,
+   "Venezuelan": 14,
+   "Zambian": 13,
+   "Zimbabwean": 3
+  },
+  "class_counts": {
+   "American": 202,
+   "British": 111,
+   "Canadian": 36,
+   "Chinese": 42,
+   "Egyptian": 33,
+   "Filipino": 30,
+   "French": 76,
+   "Indian": 127,
+   "Italian": 122,
+   "Jamaican": 35,
+   "Japanese": 35,
+   "Mexican": 46,
+   "Nigerian": 133,
+   "Polish": 38,
+   "Spanish": 62,
+   "Thai": 55,
+   "Turkish": 38,
+   "Vietnamese": 35
+  }
+ },
+ "split": {
+  "train": 879,
+  "validation": 188,
+  "test": 189,
+  "seed": 20261029
+ },
+ "chosen_C": 3.0,
+ "validation_macro_f1_by_C": {
+  "0.3": 0.4997,
+  "1.0": 0.5424,
+  "3.0": 0.5638,
+  "10.0": 0.5575
+ },
+ "test": {
+  "macro_f1": 0.5156,
+  "accuracy": 0.5926,
+  "per_class": {
+   "American": {
+    "precision": 0.7333,
+    "recall": 0.3548,
+    "f1-score": 0.4783,
+    "support": 31.0
+   },
+   "British": {
+    "precision": 0.7333,
+    "recall": 0.6471,
+    "f1-score": 0.6875,
+    "support": 17.0
+   },
+   "Canadian": {
+    "precision": 0.3,
+    "recall": 0.6,
+    "f1-score": 0.4,
+    "support": 5.0
+   },
+   "Chinese": {
+    "precision": 0.625,
+    "recall": 0.8333,
+    "f1-score": 0.7143,
+    "support": 6.0
+   },
+   "Egyptian": {
+    "precision": 0.4,
+    "recall": 0.4,
+    "f1-score": 0.4,
+    "support": 5.0
+   },
+   "Filipino": {
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1-score": 0.0,
+    "support": 4.0
+   },
+   "French": {
+    "precision": 0.4167,
+    "recall": 0.4167,
+    "f1-score": 0.4167,
+    "support": 12.0
+   },
+   "Indian": {
+    "precision": 0.8095,
+    "recall": 0.8947,
+    "f1-score": 0.85,
+    "support": 19.0
+   },
+   "Italian": {
+    "precision": 0.6842,
+    "recall": 0.6842,
+    "f1-score": 0.6842,
+    "support": 19.0
+   },
+   "Jamaican": {
+    "precision": 0.4286,
+    "recall": 0.6,
+    "f1-score": 0.5,
+    "support": 5.0
+   },
+   "Japanese": {
+    "precision": 0.8,
+    "recall": 0.8,
+    "f1-score": 0.8,
+    "support": 5.0
+   },
+   "Mexican": {
+    "precision": 0.4444,
+    "recall": 0.5714,
+    "f1-score": 0.5,
+    "support": 7.0
+   },
+   "Nigerian": {
+    "precision": 0.68,
+    "recall": 0.85,
+    "f1-score": 0.7556,
+    "support": 20.0
+   },
+   "Polish": {
+    "precision": 0.25,
+    "recall": 0.2,
+    "f1-score": 0.2222,
+    "support": 5.0
+   },
+   "Spanish": {
+    "precision": 0.5,
+    "recall": 0.8,
+    "f1-score": 0.6154,
+    "support": 10.0
+   },
+   "Thai": {
+    "precision": 0.5,
+    "recall": 0.5556,
+    "f1-score": 0.5263,
+    "support": 9.0
+   },
+   "Turkish": {
+    "precision": 0.5,
+    "recall": 0.2,
+    "f1-score": 0.2857,
+    "support": 5.0
+   },
+   "Vietnamese": {
+    "precision": 0.5,
+    "recall": 0.4,
+    "f1-score": 0.4444,
+    "support": 5.0
+   }
+  }
+ },
+ "baseline_majority_class": {
+  "label": "American",
+  "test_macro_f1": 0.0157,
+  "test_accuracy": 0.164
+ }
+}

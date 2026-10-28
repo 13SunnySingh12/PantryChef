@@ -4,7 +4,14 @@ Legend: `[✓]` completed and verified · `[→]` in progress · `[ ]` pending �
 
 ## Current state (2026-10-25)
 
-**Loop 8 (meal plan + grocery list) complete and verified locally and in CI. Next: L9 dashboard. Open items: allergen dictionary review (D-031), plan start date (A-10), grocery unit conversions (see below).**
+**Loop 8 (meal plan + grocery list) complete and verified locally and in CI. Next: L9 dashboard. Open items: allergen dictionary review (D-031), plan start date (A-10).**
+
+### Loop 8b — Approved unit conversions (2026-10-29) `[✓]`
+
+- User approved converting oz/lb → g and US tsp/tbsp/cup → ml at import (D-038); `app/ingredients.py` `CONVERTED_UNITS`
+- Tests: 108 Python tests pass (new conversion cases incl. fluid ounces staying unresolved)
+- Real data (dry-run parse of the cached downloads): resolved quantities Wikibooks 6,513 → 19,027 of 25,817 (73%), TheMealDB 3,658 → 6,768 of 8,145 (83%); a sample 21-recipe grocery list has 52 of 130 items unresolved (mostly the same ingredient given in volume in one recipe and weight in another)
+- Not re-run: a full database re-import + end-to-end plan (the parser change only affects ingredient rows; the importer replaces them on the next run)
 
 ### Loop 8 — Seven-day meal plan + grocery list (2026-10-29) `[✓]`
 
@@ -192,7 +199,8 @@ Not run yet: deliberate-failure CI run (QA-024, planned for L12); pull-request t
 - [✓] L7 Recipe ingestion + retrieval + suggestions (see below)
 - [!] Review `database/reference/ingredient_allergens.json` (D-031)
 - [✓] L8 Meal plan + grocery list (see below)
-- [!] Confirm A-10 plan start date (day of generation in use) and grocery unit conversions
+- [✓] Grocery unit conversions approved and implemented (D-038)
+- [!] Confirm A-10 plan start date (day of generation in use)
 - [ ] L9 Dashboard — next
 - [✓] A-01…A-08 approved by the user (2026-10-25); B-04 push authorization granted
 - [!] B-01 recipe dataset + license (blocks real RAG/plans/nutrition/cuisine)
@@ -225,6 +233,7 @@ Tests executed: **none** (no code exists). Git commits/pushes: **none**.
 | 2026-10-25 | Data-source research and approval |
 | 2026-10-26 | Loop 7 recipe import, embeddings, retrieval, suggestions |
 | 2026-10-29 | Loop 8 meal plans, grocery list, check-off |
+| 2026-10-29 | Approved oz/lb and US spoon/cup conversions |
 
 ## Next safe action
 

@@ -4,7 +4,20 @@ Legend: `[✓]` completed and verified · `[→]` in progress · `[ ]` pending �
 
 ## Current state (2026-10-25)
 
-**Loop 8 (meal plan + grocery list) complete and verified locally and in CI. Next: L9 dashboard. Open items: allergen dictionary review (D-031), plan start date (A-10).**
+**Loop 9 (dashboard) complete and verified locally; CI result recorded below. Next: L10 cuisine classifier + waste predictor. Open decisions: nutrition data source scope (D-040), allergen dictionary review (D-031), plan start date (A-10).**
+
+### Loop 9 — Dashboard: food saved, money saved, nutrition, chart data (2026-10-29) `[✓]`
+
+- `dashboard/DashboardService` + `DashboardController`: `GET /api/v1/dashboard/summary` (D-039)
+
+| Check | Result |
+|---|---|
+| `mvnw.cmd -B verify` | BUILD SUCCESS — 85 tests (new: DashboardTests 6) |
+| Mutations | use after expiry counted as saved → failed; zero instead of unknown nutrition → failed (both restored) |
+| Real HTTP run (compose DB + jar) | 200 g of 400 g paneer bought for ₹180, used before expiry → ₹90 saved; 1 bunch spinach thrown away reported separately; 7-day daily series; nutrition `null` with no plan |
+| Nutrition feasibility (real data) | 88 of 1,270 plannable recipes state servings and have every amount → at most ~7% derivable from USDA FDC (D-040, open) |
+
+Commit `908b61f` (feat).
 
 ### Loop 8b — Approved unit conversions (2026-10-29) `[✓]`
 
@@ -202,7 +215,9 @@ Not run yet: deliberate-failure CI run (QA-024, planned for L12); pull-request t
 - [✓] L8 Meal plan + grocery list (see below)
 - [✓] Grocery unit conversions approved and implemented (D-038)
 - [!] Confirm A-10 plan start date (day of generation in use)
-- [ ] L9 Dashboard — next
+- [✓] L9 Dashboard (see below)
+- [!] Decide nutrition data scope (D-040)
+- [ ] L10 Cuisine classifier + waste predictor — next
 - [✓] A-01…A-08 approved by the user (2026-10-25); B-04 push authorization granted
 - [!] B-01 recipe dataset + license (blocks real RAG/plans/nutrition/cuisine)
 
@@ -235,7 +250,8 @@ Tests executed: **none** (no code exists). Git commits/pushes: **none**.
 | 2026-10-26 | Loop 7 recipe import, embeddings, retrieval, suggestions |
 | 2026-10-29 | Loop 8 meal plans, grocery list, check-off |
 | 2026-10-29 | Approved oz/lb and US spoon/cup conversions |
+| 2026-10-29 | Loop 9 dashboard API |
 
 ## Next safe action
 
-L9 dashboard: waste saved and money saved from recorded `used`/`finished` events before expiry (A-06 formula), unknown prices disclosed; weekly nutrition from planned meals needs nutrition data — recipes have none, so it needs the USDA FoodData Central import (free data.gov API key or the bulk CSV download) or stays "unknown"; chart-ready series with text summaries.
+L10: cuisine classifier (TF-IDF + logistic regression) trained on recipes whose source gives a cuisine (Wikibooks categories, TheMealDB area), with a reproducible split, recorded metrics and a versioned model file kept out of git; waste predictor returns `insufficient_data` until real labelled history exists (A-11). Independent of D-040.

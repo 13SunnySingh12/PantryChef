@@ -7,19 +7,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import com.jayway.jsonpath.JsonPath;
+import com.pantrychef.AiStub;
 import com.pantrychef.PantryChefTest;
 import com.pantrychef.TestUsers;
-import com.sun.net.httpserver.HttpServer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,9 +37,11 @@ class RecipeSuggestionTests {
 
 	static final AiStub AI = new AiStub();
 
+	static final String RETRIEVE = "/internal/v1/recipes/retrieve";
+
 	@DynamicPropertySource
 	static void ai(DynamicPropertyRegistry registry) {
-		registry.add("pantrychef.ai.base-url", () -> "http://127.0.0.1:" + AI.server.getAddress().getPort());
+		registry.add("pantrychef.ai.base-url", AI::baseUrl);
 		registry.add("pantrychef.ai.service-token", () -> TOKEN);
 		registry.add("pantrychef.ai.read-timeout", () -> "PT1S");
 	}
@@ -73,7 +71,7 @@ class RecipeSuggestionTests {
 			.andExpect(jsonPath("$.reason").value("empty_pantry"))
 			.andExpect(jsonPath("$.suggestions.length()").value(0))
 			.andExpect(jsonPath("$.disclaimer").isNotEmpty());
-		assertThat(AI.requests).isEmpty();
+		assertThat(AI.requests(RETRIEVE)).isEmpty();
 	}
 
 	@Test
@@ -87,14 +85,14 @@ class RecipeSuggestionTests {
 		this.mvc.perform(put("/api/v1/preferences").header("Authorization", this.alice)
 			.contentType(MediaType.APPLICATION_JSON).content("{\"diets\":[\"vegetarian\"],\"allergens\":[\"peanuts\"]}"));
 		UUID recipe = recipe("ok-" + UUID.randomUUID(), new String[] { "vegetarian" }, true, new String[] {});
-		AI.answer(200, "{\"results\":[{\"recipeId\":\"" + recipe + "\",\"title\":\"Fixture\"}],"
+		AI.answer(RETRIEVE, 200, "{\"results\":[{\"recipeId\":\"" + recipe + "\",\"title\":\"Fixture\"}],"
 				+ "\"excludedByPreferences\":3,\"reason\":null}");
 
 		suggestions(this.alice).andExpect(status().isOk())
 			.andExpect(jsonPath("$.suggestions[0].recipeId").value(recipe.toString()))
 			.andExpect(jsonPath("$.excludedByPreferences").value(3));
 
-		String sent = AI.requests.get(0);
+		String sent = AI.requests(RETRIEVE).get(0);
 		assertThat(AI.tokens.get(0)).isEqualTo(TOKEN);
 		assertThat(AI.upgrades).isEmpty();
 		assertThat((List<Object>) JsonPath.read(sent, "$.pantry[*].name")).containsExactly("Spinach");
@@ -111,7 +109,7 @@ class RecipeSuggestionTests {
 		UUID safe = recipe("safe-" + UUID.randomUUID(), new String[] {}, true, new String[] {});
 		UUID peanuts = recipe("nuts-" + UUID.randomUUID(), new String[] {}, true, new String[] { "peanuts" });
 		UUID unknown = recipe("unk-" + UUID.randomUUID(), new String[] {}, false, new String[] {});
-		AI.answer(200, "{\"results\":[{\"recipeId\":\"" + peanuts + "\"},{\"recipeId\":\"" + safe + "\"},"
+		AI.answer(RETRIEVE, 200, "{\"results\":[{\"recipeId\":\"" + peanuts + "\"},{\"recipeId\":\"" + safe + "\"},"
 				+ "{\"recipeId\":\"" + unknown + "\"},{\"recipeId\":\"" + UUID.randomUUID() + "\"},"
 				+ "{\"recipeId\":\"not-a-uuid\"}],\"excludedByPreferences\":0,\"reason\":null}");
 		suggestions(this.alice).andExpect(status().isOk())
@@ -122,15 +120,15 @@ class RecipeSuggestionTests {
 	@Test
 	void aiFailuresBecomeSafeErrors() throws Exception {
 		item(this.alice, "Onion", null);
-		AI.answer(500, "{\"error\":{\"code\":\"INTERNAL_ERROR\",\"message\":\"stack trace here\"}}");
+		AI.answer(RETRIEVE, 500, "{\"error\":{\"code\":\"INTERNAL_ERROR\",\"message\":\"stack trace here\"}}");
 		suggestions(this.alice).andExpect(status().isBadGateway())
 			.andExpect(jsonPath("$.error.code").value("AI_ERROR"))
 			.andExpect(jsonPath("$.error.message").value("Recipe suggestions failed. Try again later."));
-		AI.answer(503, "{}");
+		AI.answer(RETRIEVE, 503, "{}");
 		suggestions(this.alice).andExpect(status().isServiceUnavailable())
 			.andExpect(jsonPath("$.error.code").value("AI_UNAVAILABLE"));
 		AI.delayMillis = 1500;
-		AI.answer(200, "{\"results\":[]}");
+		AI.answer(RETRIEVE, 200, "{\"results\":[]}");
 		suggestions(this.alice).andExpect(status().isGatewayTimeout())
 			.andExpect(jsonPath("$.error.code").value("AI_TIMEOUT"));
 	}
@@ -150,9 +148,9 @@ class RecipeSuggestionTests {
 		String bob = TestUsers.signUp(this.mvc);
 		item(this.alice, "Alice only item", null);
 		item(bob, "Bob only item", null);
-		AI.answer(200, "{\"results\":[],\"excludedByPreferences\":0,\"reason\":\"no_match\"}");
+		AI.answer(RETRIEVE, 200, "{\"results\":[],\"excludedByPreferences\":0,\"reason\":\"no_match\"}");
 		suggestions(bob).andExpect(jsonPath("$.reason").value("no_match"));
-		assertThat(AI.requests.get(0)).contains("Bob only item").doesNotContain("Alice only item");
+		assertThat(AI.requests(RETRIEVE).get(0)).contains("Bob only item").doesNotContain("Alice only item");
 	}
 
 	private ResultActions suggestions(String token) throws Exception {
@@ -177,67 +175,6 @@ class RecipeSuggestionTests {
 			.params(id, flags)
 			.update();
 		return id;
-	}
-
-	/** Minimal stand-in for the FastAPI service: records requests, returns a canned answer. */
-	static final class AiStub {
-
-		final HttpServer server;
-
-		final List<String> requests = new ArrayList<>();
-
-		final List<String> tokens = new ArrayList<>();
-
-		/** uvicorn does not answer HTTP/2 upgrade attempts, so the backend must never send one. */
-		final List<String> upgrades = new ArrayList<>();
-
-		volatile int status = 200;
-
-		volatile String body = "{}";
-
-		volatile long delayMillis;
-
-		AiStub() {
-			try {
-				this.server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
-			}
-			catch (IOException ex) {
-				throw new IllegalStateException(ex);
-			}
-			this.server.createContext("/internal/v1/recipes/retrieve", (exchange) -> {
-				this.requests.add(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
-				this.tokens.add(exchange.getRequestHeaders().getFirst("X-Service-Token"));
-				if (exchange.getRequestHeaders().containsKey("Upgrade")) {
-					this.upgrades.add(exchange.getRequestHeaders().getFirst("Upgrade"));
-				}
-				try {
-					Thread.sleep(this.delayMillis);
-				}
-				catch (InterruptedException ex) {
-					Thread.currentThread().interrupt();
-				}
-				byte[] bytes = this.body.getBytes(StandardCharsets.UTF_8);
-				exchange.getResponseHeaders().add("Content-Type", "application/json");
-				exchange.sendResponseHeaders(this.status, bytes.length);
-				exchange.getResponseBody().write(bytes);
-				exchange.close();
-			});
-			this.server.start();
-		}
-
-		void answer(int status, String body) {
-			this.status = status;
-			this.body = body;
-		}
-
-		void reset() {
-			this.requests.clear();
-			this.tokens.clear();
-			this.upgrades.clear();
-			this.delayMillis = 0;
-			answer(200, "{}");
-		}
-
 	}
 
 }

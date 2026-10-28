@@ -64,6 +64,23 @@ public class PantryService {
 		return this.alerts.today();
 	}
 
+	/** What the user can cook with: not deleted, something left, not past its expiry date (A-01). */
+	public record Usable(String name, Long daysToExpiry, BigDecimal quantity, String unit) {
+	}
+
+	public List<Usable> usableStock(UUID user) {
+		LocalDate today = today();
+		return this.db
+			.sql("SELECT name, expiry_date, quantity_remaining, unit FROM pantry_items WHERE user_id = ?"
+					+ " AND deleted_at IS NULL AND quantity_remaining > 0 AND (expiry_date IS NULL OR expiry_date >= ?)"
+					+ " ORDER BY id")
+			.params(user, today)
+			.query((rs, n) -> new Usable(rs.getString("name"),
+					Expiry.daysUntil(rs.getObject("expiry_date", LocalDate.class), today),
+					rs.getBigDecimal("quantity_remaining"), rs.getString("unit")))
+			.list();
+	}
+
 	public List<Item> list(UUID user) {
 		return this.db
 			.sql("SELECT " + COLUMNS + " FROM pantry_items WHERE user_id = ? AND deleted_at IS NULL"

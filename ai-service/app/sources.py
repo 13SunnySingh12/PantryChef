@@ -25,6 +25,21 @@ NOT_FOOD_PAGES = {
     "shredding", "soaking", "simmering", "sauteing", "sautéing", "marinating", "kneading", "brunoise", "chiffonade",
     "measurement", "units of measurement", "optional", "to taste",
 }
+# Source course labels. Order matters: a page in both "Dessert" and "Main course" is not planned as a main.
+WIKIBOOKS_COURSES = [
+    ("dessert", {"Category:Recipes for dessert", "Category:Dessert recipes", "Category:Recipes for frozen desserts"}),
+    ("drink", {"Category:Recipes for beverages", "Category:Recipes for alcoholic beverages"}),
+    ("condiment", {"Category:Recipes for sauces and condiments", "Category:Recipes for salad dressing",
+                   "Category:Recipes for pasta sauce", "Category:Recipes for barbecue sauce"}),
+    ("breakfast", {"Category:Breakfast recipes"}),
+    ("main", {"Category:Main course recipes", "Category:Dinner recipes", "Category:Recipes for soup",
+              "Category:Soup recipes", "Category:Recipes for salad"}),
+    ("side", {"Category:Side dish recipes", "Category:Appetizer recipes", "Category:Snack recipes"}),
+]
+MEALDB_COURSES = {
+    "breakfast": "breakfast", "dessert": "dessert", "side": "side", "starter": "side",
+    **dict.fromkeys(["beef", "chicken", "seafood", "pork", "lamb", "goat", "pasta", "vegetarian", "vegan"], "main"),
+}
 DIET_CATEGORIES = {
     "Category:Vegan recipes": "vegan",
     "Category:Vegetarian recipes": "vegetarian",
@@ -121,6 +136,7 @@ def parse_wikibooks(page: dict, cuisines: dict[str, str]) -> tuple[dict | None, 
         "instructions": plain_text(method) if method else None,
         "cuisine": cuisine,
         "servings": float(servings.group(1)) if servings and int(servings.group(1)) > 0 else None,
+        "course": next((course for course, names in WIKIBOOKS_COURSES if names & set(categories)), None),
     }
     labels = {DIET_CATEGORIES[c] for c in categories if c in DIET_CATEGORIES}
     return _finish(recipe, ingredients, labels), None
@@ -150,6 +166,7 @@ def parse_mealdb(meal: dict) -> tuple[dict | None, str | None]:
         "instructions": (meal.get("strInstructions") or "").strip() or None,
         "cuisine": (meal.get("strArea") or "").strip() or None,
         "servings": None,
+        "course": MEALDB_COURSES.get(category.lower()),
     }
     labels = {"vegan": {"vegan"}, "vegetarian": {"vegetarian"}}.get(category.lower(), set())
     return _finish(recipe, ingredients, labels), None

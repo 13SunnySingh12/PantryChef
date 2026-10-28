@@ -24,7 +24,8 @@ WIKITEXT = """{{recipesummary|category=Side dish recipes|servings=4|time=20 minu
 
 def page(**overrides):
     base = {"pageid": 123, "revid": 456, "title": "Cookbook:Test Potato Dish", "wikitext": WIKITEXT,
-            "categories": ["Category:Indian recipes", "Category:Vegetarian recipes", "Category:Recipes"]}
+            "categories": ["Category:Indian recipes", "Category:Vegetarian recipes", "Category:Main course recipes",
+                   "Category:Recipes"]}
     return {**base, **overrides}
 
 
@@ -38,6 +39,7 @@ def test_wikibooks_recipe_keeps_source_license_and_parsed_ingredients():
     assert "Wikibooks contributors" in recipe["attribution"] and "Modified" in recipe["attribution"]
     assert recipe["cuisine"] == "Indian"
     assert recipe["servings"] == 4.0
+    assert recipe["course"] == "main"
     assert recipe["diet_labels"] == ["vegetarian"]
     keys = [i["normalized"] for i in recipe["ingredients"]]
     assert keys == ["olive oil", "mustard seed", "potato", "paneer", "salt"]
@@ -91,6 +93,7 @@ def test_mealdb_recipe_credits_source_and_keeps_measures_as_text():
     assert recipe["source_url"] == "https://www.themealdb.com/meal/99999"
     assert "TheMealDB" in recipe["attribution"] and "https://example.org/dal" in recipe["attribution"]
     assert recipe["cuisine"] == "Indian"
+    assert recipe["course"] == "main"
     assert recipe["diet_labels"] == ["vegetarian"]
     lentils, turmeric, ghee = recipe["ingredients"]
     assert (lentils["normalized"], lentils["quantity"], lentils["unit"]) == ("red lentil", 250.0, "g")
@@ -102,3 +105,13 @@ def test_mealdb_recipe_credits_source_and_keeps_measures_as_text():
 def test_mealdb_category_is_not_trusted_against_meat():
     recipe, _ = parse_mealdb(meal(strIngredient4="Chicken", strMeasure4="200g"))
     assert recipe["diet_labels"] == []
+
+
+def test_course_comes_from_source_categories_and_desserts_win():
+    both = page(categories=["Category:Main course recipes", "Category:Recipes for dessert"])
+    assert parse_wikibooks(both, CUISINES)[0]["course"] == "dessert"
+    assert parse_wikibooks(page(categories=["Category:Breakfast recipes"]), CUISINES)[0]["course"] == "breakfast"
+    assert parse_wikibooks(page(categories=[]), CUISINES)[0]["course"] is None
+    assert parse_mealdb(meal(strCategory="Breakfast"))[0]["course"] == "breakfast"
+    assert parse_mealdb(meal(strCategory="Dessert"))[0]["course"] == "dessert"
+    assert parse_mealdb(meal(strCategory="Miscellaneous"))[0]["course"] is None

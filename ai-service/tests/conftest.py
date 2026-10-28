@@ -21,8 +21,9 @@ def fake_embed(texts):
     return vectors
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def database():
+    # one throwaway database per test module, so modules cannot change each other's recipe data
     """Throwaway PostgreSQL 17 + pgvector with the real migrations, plus a login for the read-only AI role."""
     from testcontainers.community.postgres import PostgresContainer
 

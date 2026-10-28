@@ -14,14 +14,14 @@ from app.embeddings import Embed, chunk_text
 
 UPSERT_RECIPE = """
 INSERT INTO recipes (source_name, source_key, source_url, source_license, attribution, dataset_version, title,
-                     instructions, cuisine, servings, diet_labels, allergen_metadata_complete, allergen_source)
+                     instructions, cuisine, course, servings, diet_labels, allergen_metadata_complete, allergen_source)
 VALUES (%(source_name)s, %(source_key)s, %(source_url)s, %(source_license)s, %(attribution)s, %(dataset_version)s,
-        %(title)s, %(instructions)s, %(cuisine)s, %(servings)s, %(diet_labels)s, %(allergen_metadata_complete)s,
+        %(title)s, %(instructions)s, %(cuisine)s, %(course)s, %(servings)s, %(diet_labels)s, %(allergen_metadata_complete)s,
         %(allergen_source)s)
 ON CONFLICT (source_name, source_key) DO UPDATE SET
   source_url = EXCLUDED.source_url, source_license = EXCLUDED.source_license, attribution = EXCLUDED.attribution,
   dataset_version = EXCLUDED.dataset_version, title = EXCLUDED.title, instructions = EXCLUDED.instructions,
-  cuisine = EXCLUDED.cuisine, servings = EXCLUDED.servings, diet_labels = EXCLUDED.diet_labels,
+  cuisine = EXCLUDED.cuisine, course = EXCLUDED.course, servings = EXCLUDED.servings, diet_labels = EXCLUDED.diet_labels,
   allergen_metadata_complete = EXCLUDED.allergen_metadata_complete, allergen_source = EXCLUDED.allergen_source,
   updated_at = now()
 RETURNING id

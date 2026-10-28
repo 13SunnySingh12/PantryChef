@@ -29,7 +29,7 @@ class SchemaConstraintsTests {
 
 	@Test
 	void migrationsApplyAndRerunIsNoOp() {
-		assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("2");
+		assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("3");
 		assertThat(flyway.migrate().migrationsExecuted).isZero();
 	}
 
@@ -128,9 +128,12 @@ class SchemaConstraintsTests {
 		jdbc.update(entry, plan, r, "breakfast", 2, null);
 		jdbc.update(entry, plan, null, "lunch", null, "No eligible recipe");
 		rejects(entry, plan, r, "breakfast", 2, null);
-		rejects(entry, plan, r, "dinner", null, null);
-		rejects(entry, plan, null, "dinner", null, null);
+		jdbc.update(entry, plan, r, "dinner", null, null); // planned with servings unknown (V3)
+		rejects(entry, plan, r, "dinner", 1, null); // still one entry per slot
+		rejects("INSERT INTO meal_plan_entries (meal_plan_id, plan_date, meal_period, servings, unavailable_reason)"
+				+ " VALUES (?, DATE '2026-10-27', 'lunch', 2, 'No recipe')", plan); // unavailable slot with servings
 		rejects(entry, plan, r, "brunch", 1, null);
+		rejects("UPDATE recipes SET course = 'brunch' WHERE id = ?", r);
 	}
 
 	@Test

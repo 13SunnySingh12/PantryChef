@@ -39,23 +39,34 @@ def _expiry_weight(days: int | None) -> float:
     return (4 - days) / 4 if days is not None and 0 <= days <= 3 else 0.0
 
 
-def retrieve(conn: psycopg.Connection, embed: Embed, pantry: Sequence[PantryItem], diets: Sequence[str],
-             allergens: Sequence[str], limit: int = 10) -> dict:
-    usable: dict[str, float] = {}  # ingredient key -> strongest expiry weight among pantry items with that key
+def usable_keys(pantry: Sequence[PantryItem]) -> dict[str, float]:
+    """Ingredient key -> strongest expiry weight among usable pantry items with that key (expired items excluded)."""
+    usable: dict[str, float] = {}
     for item in pantry:
         key = normalize(item.name)
         if key and (item.days_to_expiry is None or item.days_to_expiry >= 0):
             usable[key] = max(usable.get(key, 0.0), _expiry_weight(item.days_to_expiry))
+    return usable
+
+
+def similarities(cur: psycopg.Cursor, embed: Embed, keys: Sequence[str]) -> dict:
+    """Recipe id -> cosine similarity for the closest VECTOR_CANDIDATES recipe chunks to the pantry query."""
+    query_vector = vector_literal(embed([query_text(keys)])[0])
+    return dict(cur.execute(
+        "SELECT recipe_id, 1 - (embedding <=> %s::vector) FROM recipe_chunks WHERE embedding_model = %s"
+        " ORDER BY embedding <=> %s::vector LIMIT %s",
+        (query_vector, EMBEDDING_MODEL_ID, query_vector, VECTOR_CANDIDATES)).fetchall())
+
+
+def retrieve(conn: psycopg.Connection, embed: Embed, pantry: Sequence[PantryItem], diets: Sequence[str],
+             allergens: Sequence[str], limit: int = 10) -> dict:
+    usable = usable_keys(pantry)
     if not usable:
         return {"results": [], "excludedByPreferences": 0, "reason": "no_usable_pantry_items"}
     keys = sorted(usable)
 
     with conn.cursor() as cur:
-        query_vector = vector_literal(embed([query_text(keys)])[0])
-        similarity = dict(cur.execute(
-            "SELECT recipe_id, 1 - (embedding <=> %s::vector) FROM recipe_chunks WHERE embedding_model = %s"
-            " ORDER BY embedding <=> %s::vector LIMIT %s",
-            (query_vector, EMBEDDING_MODEL_ID, query_vector, VECTOR_CANDIDATES)).fetchall())
+        similarity = similarities(cur, embed, keys)
         suffixes = sorted({" ".join(k.split()[i:]) for k in keys for i in range(len(k.split()))})
         overlap = [row[0] for row in cur.execute(
             "SELECT DISTINCT recipe_id FROM recipe_ingredients WHERE normalized_ingredient = ANY(%s)"

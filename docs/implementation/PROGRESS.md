@@ -11,6 +11,7 @@ Legend: `[✓]` completed and verified · `[→]` in progress · `[ ]` pending �
 - User approved converting oz/lb → g and US tsp/tbsp/cup → ml at import (D-038); `app/ingredients.py` `CONVERTED_UNITS`
 - Tests: 108 Python tests pass (new conversion cases incl. fluid ounces staying unresolved)
 - Real data (dry-run parse of the cached downloads): resolved quantities Wikibooks 6,513 → 19,027 of 25,817 (73%), TheMealDB 3,658 → 6,768 of 8,145 (83%); a sample 21-recipe grocery list has 52 of 130 items unresolved (mostly the same ingredient given in volume in one recipe and weight in another)
+- Commits `8dbf882`, `c458de0`, pushed. CI run [40778891986](https://github.com/13SunnySingh12/PantryChef/actions/runs/40778891986): **success** (all three jobs)
 - Not re-run: a full database re-import + end-to-end plan (the parser change only affects ingredient rows; the importer replaces them on the next run)
 
 ### Loop 8 — Seven-day meal plan + grocery list (2026-10-29) `[✓]`

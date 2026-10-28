@@ -4,7 +4,7 @@ Legend: `[✓]` completed and verified · `[→]` in progress · `[ ]` pending �
 
 ## Current state (2026-10-25)
 
-**Loop 10 (cuisine classifier + waste predictor) complete and verified locally; CI result recorded below. Next: L11 frontend. Open decisions: allergen dictionary review (D-031), plan start date (A-10), cuisine acceptance threshold (TBD-027).**
+**Loop 10 (cuisine classifier + waste predictor) complete and verified locally and in CI. Next: L11 frontend. Open decisions: allergen dictionary review (D-031), plan start date (A-10), cuisine acceptance threshold (TBD-027).**
 
 ### Loop 10 — Cuisine classifier + waste predictor (2026-10-29) `[✓]`
 
@@ -19,6 +19,8 @@ Legend: `[✓]` completed and verified · `[→]` in progress · `[ ]` pending �
 | `mvnw.cmd -B verify` | BUILD SUCCESS — 87 tests (new: EstimatesTests 2) |
 | Mutation: model hash check removed | tampered-model test failed → restored |
 | Real end-to-end (DB + AI service + backend + real model) | paneer/spinach/garam masala/ghee → Indian; unknown ingredient → `unknown`; waste-risk → `insufficient_data`; 0 secrets in logs |
+
+Commits `d2cf5ed`, `a88eb84`, `50e25c1`, pushed (first `git push` attempt exited 1 with no change; the retry succeeded). CI run [40782691823](https://github.com/13SunnySingh12/PantryChef/actions/runs/40782691823): **success** (all three jobs).
 
 
 ### Loop 9 — Dashboard: food saved, money saved, nutrition, chart data (2026-10-29) `[✓]`

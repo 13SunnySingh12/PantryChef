@@ -4,7 +4,25 @@ Legend: `[✓]` completed and verified · `[→]` in progress · `[ ]` pending �
 
 ## Current state (2026-10-25)
 
-**Loop 7 (recipe data + suggestions) complete and verified locally and in CI. Next: L8 seven-day meal plan + grocery list. Open review item: allergen dictionary (D-031).**
+**Loop 8 (meal plan + grocery list) complete and verified locally; CI result recorded below. Next: L9 dashboard. Open items: allergen dictionary review (D-031), plan start date (A-10), grocery unit conversions (see below).**
+
+### Loop 8 — Seven-day meal plan + grocery list (2026-10-29) `[✓]`
+
+- V3 migration: `recipes.course` (from source categories), planned slots may have unknown servings, `meal_plans.grocery_calculated_at`
+- AI service: `app/planner.py` (D-035), `app/grocery.py` (D-036), `POST /internal/v1/meal-plans/generate`, `POST /internal/v1/grocery/compute`; importer stores course; retrieval helpers shared
+- Backend: `plans/MealPlanService` + `MealPlanController` (D-037), shared `PantryService.usableStock` and `recipes/RecipeSafety` (suggestions refactored onto them), shared test `AiStub`
+- New import summary `database/imports/2026-10-29-summary.json` (re-import with course labels)
+
+| Check | Result |
+|---|---|
+| `python -m pytest -q` | 104 passed (new: planner 5, grocery 5, course parsing 1); test DB now one per module |
+| `mvnw.cmd -B verify` | BUILD SUCCESS — 79 tests (new: MealPlanTests 6) |
+| Mutations | expiring item keeps boosting after use → failed; backend re-check skipped → failed; recalculation drops checked state → failed (all restored) |
+| Fresh DB, V1–V3, full re-import | 4,067 recipes; courses: main 1,141, breakfast 129, dessert 570, side 359, condiment 191, drink 66, none 1,611 |
+| End-to-end (DB + AI service + backend + curl) | plan generated in ~6 s: complete 21/21, breakfast slots all breakfast recipes, lunch/dinner all mains, 21 distinct recipes; same `Idempotency-Key` → 200; check-off persisted and survived recalculation; vegetarian + no dairy/peanuts → partial 16/21 with "Not enough different breakfast recipes…" for 5 slots; 0 secrets in logs |
+| Finding | 43 of 61 grocery items were **unresolved**: most source quantities are cups/tbsp/oz, which A-04 deliberately does not convert. Needs a product decision (see wrap-up) |
+
+Process note: in the first end-to-end script, three checks failed only because Windows Python cannot open `/c/...` paths given inside `-c`; they were re-run with `C:/...` paths and passed.
 
 ### Loop 7 — Licensed recipe data, embeddings, retrieval, suggestions (2026-10-25/26) `[✓]`
 
@@ -171,7 +189,9 @@ Not run yet: deliberate-failure CI run (QA-024, planned for L12); pull-request t
 - [✓] L6 Preferences + diet/allergen eligibility (see below)
 - [✓] L7 Recipe ingestion + retrieval + suggestions (see below)
 - [!] Review `database/reference/ingredient_allergens.json` (D-031)
-- [ ] L8 Meal plan + grocery list — next
+- [✓] L8 Meal plan + grocery list (see below)
+- [!] Confirm A-10 plan start date (day of generation in use) and grocery unit conversions
+- [ ] L9 Dashboard — next
 - [✓] A-01…A-08 approved by the user (2026-10-25); B-04 push authorization granted
 - [!] B-01 recipe dataset + license (blocks real RAG/plans/nutrition/cuisine)
 
@@ -202,7 +222,8 @@ Tests executed: **none** (no code exists). Git commits/pushes: **none**.
 | 2026-10-25 | Loop 6 preferences API, shared eligibility rule + fixture |
 | 2026-10-25 | Data-source research and approval |
 | 2026-10-26 | Loop 7 recipe import, embeddings, retrieval, suggestions |
+| 2026-10-29 | Loop 8 meal plans, grocery list, check-off |
 
 ## Next safe action
 
-L8: seven-day meal plan (21 slots, explicit unavailable slots with reasons, eligibility applied before persistence, near-expiry preference, no overwrite on regeneration, idempotency key) and grocery list (plan ingredients minus usable stock in approved units; everything else listed as unresolved) with persisted check-off. Open decision from A-10: plan start date (proposed: the day of generation).
+L9 dashboard: waste saved and money saved from recorded `used`/`finished` events before expiry (A-06 formula), unknown prices disclosed; weekly nutrition from planned meals needs nutrition data — recipes have none, so it needs the USDA FoodData Central import (free data.gov API key or the bulk CSV download) or stays "unknown"; chart-ready series with text summaries.

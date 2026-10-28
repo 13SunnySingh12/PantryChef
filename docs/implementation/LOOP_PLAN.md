@@ -11,7 +11,7 @@ Each loop = one coherent slice: plan → smallest change → focused tests → r
 | L5 ✓ | Daily expiry scheduler + alerts API (fixed `Clock`, upsert reconciliation) | 011 | FR-006–008, FR-023 | A-01, A-02 | QA-007/008 |
 | L6 ✓ | Preferences API + shared diet/allergen eligibility predicate (Java + Python, same fixtures) | 015, 025 | FR-011, FR-012 | A-08 | QA-010 |
 | L7 ✓ | AI service: ingestion/normalize/chunk/embed (idempotent, manifest), retrieval + ranking + citations; internal auth; Spring `/recipes/suggestions` orchestration with timeouts | 008, 017, 018 | FR-009, FR-010, FR-016 | **B-01**, B-02 | QA-009/022/025/026, QA-017 |
-| L8 | Meal plan (21 slots, unavailable reasons) + grocery list (unit conversion, unresolved) + check-off | 021 | FR-015–018 | A-10, B-01 | QA-011/012 |
+| L8 ✓ | Meal plan (21 slots, unavailable reasons) + grocery list (unit conversion, unresolved) + check-off | 021 | FR-015–018 | A-10, B-01 | QA-011/012 |
 | L9 | Dashboard: waste/money saved, nutrition completeness, chart data | 012, 022 | FR-019–022 | A-06, nutrition source | QA-013/014 |
 | L10 | Cuisine classifier (train/eval script, versioned artifact) + waste predictor (`insufficient_data` until real history) | 019, 020 | FR-013, FR-014 | labelled data, A-11 | QA-015/016 |
 | L11 | Frontend: auth, pantry, alerts, preferences, recipes, plan, grocery, dashboard (taste → emil → impeccable) | 013–016 | NFR-007/008, all UI | APIs stable | Vitest/RTL, keyboard + viewport checks, Impeccable audit |

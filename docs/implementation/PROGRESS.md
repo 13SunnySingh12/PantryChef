@@ -4,7 +4,22 @@ Legend: `[✓]` completed and verified · `[→]` in progress · `[ ]` pending �
 
 ## Current state (2026-10-25)
 
-**Loop 9 (dashboard) complete and verified locally and in CI. Next: L10 cuisine classifier + waste predictor. Open decisions: nutrition data source scope (D-040), allergen dictionary review (D-031), plan start date (A-10).**
+**Loop 10 (cuisine classifier + waste predictor) complete and verified locally; CI result recorded below. Next: L11 frontend. Open decisions: allergen dictionary review (D-031), plan start date (A-10), cuisine acceptance threshold (TBD-027).**
+
+### Loop 10 — Cuisine classifier + waste predictor (2026-10-29) `[✓]`
+
+- User decided (2026-10-29): leave nutrition unknown (D-040)
+- `app/cuisine.py`, `scripts/train_cuisine.py`, model card `ai-service/model_cards/cuisine.json` (D-041); internal `POST /internal/v1/cuisine/classify`, `POST /internal/v1/waste/predict` (D-042)
+- Backend `recipes/EstimatesController`: `POST /api/v1/cuisine/classify`, `GET /api/v1/pantry-items/{id}/waste-risk` (D-043)
+
+| Check | Result |
+|---|---|
+| Training on real labels | 1,256 recipes, 18 classes, split 879/188/189, C=3.0; **test macro-F1 0.5156, accuracy 0.5926**; majority baseline 0.0157 / 0.1640; best Indian F1 0.85, Japanese 0.80, Nigerian 0.76; worst Polish 0.22, Filipino 0.00 (test classes have 4–31 recipes, so per-class figures are rough) |
+| `python -m pytest -q` | 114 passed (new: test_cuisine 6) |
+| `mvnw.cmd -B verify` | BUILD SUCCESS — 87 tests (new: EstimatesTests 2) |
+| Mutation: model hash check removed | tampered-model test failed → restored |
+| Real end-to-end (DB + AI service + backend + real model) | paneer/spinach/garam masala/ghee → Indian; unknown ingredient → `unknown`; waste-risk → `insufficient_data`; 0 secrets in logs |
+
 
 ### Loop 9 — Dashboard: food saved, money saved, nutrition, chart data (2026-10-29) `[✓]`
 
@@ -217,7 +232,9 @@ Not run yet: deliberate-failure CI run (QA-024, planned for L12); pull-request t
 - [!] Confirm A-10 plan start date (day of generation in use)
 - [✓] L9 Dashboard (see below)
 - [!] Decide nutrition data scope (D-040)
-- [ ] L10 Cuisine classifier + waste predictor — next
+- [✓] L10 Cuisine classifier + waste predictor (see below)
+- [✗] Waste model training blocked: no real labelled history (B-03)
+- [ ] L11 Frontend — next
 - [✓] A-01…A-08 approved by the user (2026-10-25); B-04 push authorization granted
 - [!] B-01 recipe dataset + license (blocks real RAG/plans/nutrition/cuisine)
 
@@ -251,7 +268,8 @@ Tests executed: **none** (no code exists). Git commits/pushes: **none**.
 | 2026-10-29 | Loop 8 meal plans, grocery list, check-off |
 | 2026-10-29 | Approved oz/lb and US spoon/cup conversions |
 | 2026-10-29 | Loop 9 dashboard API |
+| 2026-10-29 | Loop 10 cuisine classifier, waste insufficient-data contract |
 
 ## Next safe action
 
-L10: cuisine classifier (TF-IDF + logistic regression) trained on recipes whose source gives a cuisine (Wikibooks categories, TheMealDB area), with a reproducible split, recorded metrics and a versioned model file kept out of git; waste predictor returns `insufficient_data` until real labelled history exists (A-11). Independent of D-040.
+L11 frontend (React JS + Vite, existing scaffold): login/register, pantry list and forms with use/finish/discard, expiry alerts, preferences, recipe suggestions with citations and the allergen disclaimer, weekly plan with explained gaps, grocery check-off, dashboard charts with text summaries. Read the project's frontend skills first (taste → emil → impeccable; Motion per the global rules); browser calls the backend only.

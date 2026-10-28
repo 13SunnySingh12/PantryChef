@@ -73,6 +73,16 @@ cd ai-service && .venv/bin/python scripts/fetch_sources.py && .venv/bin/python s
 
 Re-running the import is safe: unchanged recipes are not re-embedded.
 
+To train the cuisine classifier from the same downloads (about 30 seconds; the model file stays in the git-ignored
+`ai-service/models/`, and its metrics card is copied to `ai-service/model_cards/cuisine.json`):
+
+```bash
+cd ai-service && .venv/bin/python scripts/train_cuisine.py
+```
+
+Without a trained model, cuisine classification answers "not available"; the waste-risk estimate always answers
+"insufficient data" until real usage history exists.
+
 ## Run locally
 
 - Frontend: `cd frontend && npm run dev`

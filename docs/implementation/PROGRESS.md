@@ -4,7 +4,7 @@ Legend: `[✓]` completed and verified · `[→]` in progress · `[ ]` pending �
 
 ## Current state (2026-10-25)
 
-**Loop 9 (dashboard) complete and verified locally; CI result recorded below. Next: L10 cuisine classifier + waste predictor. Open decisions: nutrition data source scope (D-040), allergen dictionary review (D-031), plan start date (A-10).**
+**Loop 9 (dashboard) complete and verified locally and in CI. Next: L10 cuisine classifier + waste predictor. Open decisions: nutrition data source scope (D-040), allergen dictionary review (D-031), plan start date (A-10).**
 
 ### Loop 9 — Dashboard: food saved, money saved, nutrition, chart data (2026-10-29) `[✓]`
 
@@ -17,7 +17,7 @@ Legend: `[✓]` completed and verified · `[→]` in progress · `[ ]` pending �
 | Real HTTP run (compose DB + jar) | 200 g of 400 g paneer bought for ₹180, used before expiry → ₹90 saved; 1 bunch spinach thrown away reported separately; 7-day daily series; nutrition `null` with no plan |
 | Nutrition feasibility (real data) | 88 of 1,270 plannable recipes state servings and have every amount → at most ~7% derivable from USDA FDC (D-040, open) |
 
-Commit `908b61f` (feat).
+Commits `908b61f` (feat), `9d0151f` (docs), pushed. CI run [40780592513](https://github.com/13SunnySingh12/PantryChef/actions/runs/40780592513): **success** (all three jobs).
 
 ### Loop 8b — Approved unit conversions (2026-10-29) `[✓]`
 

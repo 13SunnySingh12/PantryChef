@@ -4,7 +4,7 @@ Legend: `[✓]` completed and verified · `[→]` in progress · `[ ]` pending �
 
 ## Current state (2026-10-25)
 
-**Loop 8 (meal plan + grocery list) complete and verified locally; CI result recorded below. Next: L9 dashboard. Open items: allergen dictionary review (D-031), plan start date (A-10), grocery unit conversions (see below).**
+**Loop 8 (meal plan + grocery list) complete and verified locally and in CI. Next: L9 dashboard. Open items: allergen dictionary review (D-031), plan start date (A-10), grocery unit conversions (see below).**
 
 ### Loop 8 — Seven-day meal plan + grocery list (2026-10-29) `[✓]`
 
@@ -21,6 +21,8 @@ Legend: `[✓]` completed and verified · `[→]` in progress · `[ ]` pending �
 | Fresh DB, V1–V3, full re-import | 4,067 recipes; courses: main 1,141, breakfast 129, dessert 570, side 359, condiment 191, drink 66, none 1,611 |
 | End-to-end (DB + AI service + backend + curl) | plan generated in ~6 s: complete 21/21, breakfast slots all breakfast recipes, lunch/dinner all mains, 21 distinct recipes; same `Idempotency-Key` → 200; check-off persisted and survived recalculation; vegetarian + no dairy/peanuts → partial 16/21 with "Not enough different breakfast recipes…" for 5 slots; 0 secrets in logs |
 | Finding | 43 of 61 grocery items were **unresolved**: most source quantities are cups/tbsp/oz, which A-04 deliberately does not convert. Needs a product decision (see wrap-up) |
+
+Commits `dc1d7dc`, `72ddef8`, `e43cc9a`, pushed. CI run [40778104944](https://github.com/13SunnySingh12/PantryChef/actions/runs/40778104944) on `e43cc9a`: **success** (all three jobs).
 
 Process note: in the first end-to-end script, three checks failed only because Windows Python cannot open `/c/...` paths given inside `-c`; they were re-run with `C:/...` paths and passed.
 

@@ -4,7 +4,27 @@ Legend: `[✓]` completed and verified · `[→]` in progress · `[ ]` pending �
 
 ## Current state (2026-10-25)
 
-**Loop 10 (cuisine classifier + waste predictor) complete and verified locally and in CI. Next: L11 frontend. Open decisions: allergen dictionary review (D-031), plan start date (A-10), cuisine acceptance threshold (TBD-027).**
+**Loop 11 (frontend) complete and verified locally; CI result recorded below. Next: L12 CI hardening (deliberate-failure run, PR trigger, Java dependency scan). Open decisions: allergen dictionary review (D-031), plan start date (A-10), cuisine acceptance threshold (TBD-027); optional `/impeccable init` for a PRODUCT.md.**
+
+### Loop 11 — Frontend (2026-10-29) `[✓]`
+
+- Skills used: `design-taste-frontend` (general rules only; it excludes product UI), `emil-design-eng` (motion restraint, press feedback), Motion docs via the Motion MCP, `impeccable` (context loader, craft floor, audit checks, detector)
+- Screens: sign in / register, pantry (add/edit/remove, use/finish/throw away), expiring soon, recipes (citations, disclaimer, cuisine estimate), meal plan (21 slots with reasons, grocery check-off and recalculation), dashboard (totals, line chart, nutrition), diet and allergies (D-044)
+- Backend: plain-language validation messages on every DTO and cross-field check
+
+| Check | Result |
+|---|---|
+| `npm run lint` (oxlint, deny warnings) / `npm run build` | pass; dashboard chunk lazy-loaded |
+| `npx vitest run` | 12 passed (sign-in errors, session expiry, pantry validation + retry key, recipe citation + XSS-as-text, empty reasons, plan gaps, failed check-off rollback, dashboard unknown nutrition, preferences) |
+| Mutation: new request key per retry | retry test failed → restored |
+| `mvnw.cmd -B verify` | BUILD SUCCESS, 87 tests (after message changes) |
+| Real browser (built-in pane), full stack with 4,067 imported recipes | sign-up validation and success; add item; pantry, expiring, recipes (~8 s first search), plan, grocery, dashboard, preferences at 1280×800, 768×1024 and 375×812, dark and light |
+| Found in the browser and fixed | stretched mobile navigation on short pages; 32 px touch targets; underlined link-button; tablespoon amounts shown as 14.787 ml; "1 items"; framework validation wording ("size must be between 8 and 72") |
+| Impeccable detector | no findings (static scan of `frontend/src`, live scan of the login page) |
+| Contrast (computed) | every text/status token pair ≥ 5.09:1 in light and dark |
+| Logs | 0 secrets in backend/AI logs from the browser session |
+
+Not covered: the detector could only load the sign-in page (other pages need a signed-in session); first recipe search took about 8 s (measure in L13); no PRODUCT.md (offer `/impeccable init`).
 
 ### Loop 10 — Cuisine classifier + waste predictor (2026-10-29) `[✓]`
 
@@ -236,7 +256,8 @@ Not run yet: deliberate-failure CI run (QA-024, planned for L12); pull-request t
 - [!] Decide nutrition data scope (D-040)
 - [✓] L10 Cuisine classifier + waste predictor (see below)
 - [✗] Waste model training blocked: no real labelled history (B-03)
-- [ ] L11 Frontend — next
+- [✓] L11 Frontend (see below)
+- [ ] L12 CI hardening — next
 - [✓] A-01…A-08 approved by the user (2026-10-25); B-04 push authorization granted
 - [!] B-01 recipe dataset + license (blocks real RAG/plans/nutrition/cuisine)
 
@@ -271,7 +292,8 @@ Tests executed: **none** (no code exists). Git commits/pushes: **none**.
 | 2026-10-29 | Approved oz/lb and US spoon/cup conversions |
 | 2026-10-29 | Loop 9 dashboard API |
 | 2026-10-29 | Loop 10 cuisine classifier, waste insufficient-data contract |
+| 2026-10-29 | Loop 11 frontend |
 
 ## Next safe action
 
-L11 frontend (React JS + Vite, existing scaffold): login/register, pantry list and forms with use/finish/discard, expiry alerts, preferences, recipe suggestions with citations and the allergen disclaimer, weekly plan with explained gaps, grocery check-off, dashboard charts with text summaries. Read the project's frontend skills first (taste → emil → impeccable; Motion per the global rules); browser calls the backend only.
+L12: prove CI fails when a required check fails (temporary branch + PR, then revert), confirm the pull_request trigger, decide the Java dependency scanner (TBD-022: OWASP dependency-check needs a free NVD API key, or GitHub dependency review on PRs).

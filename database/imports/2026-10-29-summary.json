@@ -24,7 +24,7 @@
    },
    "with_cuisine": 1555,
    "ingredients": 25817,
-   "ingredients_with_resolved_quantity": 6513,
+   "ingredients_with_resolved_quantity": 19027,
    "top_unknown_allergen_ingredients": [
     [
      "oil fat",
@@ -139,7 +139,7 @@
    },
    "with_cuisine": 601,
    "ingredients": 8145,
-   "ingredients_with_resolved_quantity": 3658,
+   "ingredients_with_resolved_quantity": 6768,
    "top_unknown_allergen_ingredients": [
     [
      "chicken stock",

@@ -27,7 +27,7 @@ Status values: **Not implemented** · **Implemented (code evidence)** · **Execu
 | FR-019 | P1 | Waste-saved metric [§7] | L9 | QA-006 | — | `dashboard/DashboardService.java` (D-039) | Executed and passed (`DashboardTests`, mutation-tested; real HTTP run) |
 | FR-020 | P1 | Money-saved metric [§7] | L9 | QA-013 | — | same | Executed and passed (pro-rata price, unknown price disclosed, per currency) |
 | FR-021 | P1 | Weekly nutrition summary [§7] | L9 | QA-014 | **D-040 open** | same | Aggregation Executed and passed (one serving per meal, missing data counted, null not 0, mutation-tested); **no recipe has nutrition data yet**, so real values are all unknown |
-| FR-022 | P1 | Bar/line charts [§7] | L9 (data), L11 (UI) | QA-014 | — | `daily` series + per-day nutrition in the summary | Chart data Executed and passed; charts themselves pending L11 |
+| FR-022 | P1 | Bar/line charts [§7] | L9 (data), L11 (UI) | QA-014 | — | `frontend/src/pages/DashboardPage.jsx` (Recharts line + bar, text summary, data table) | Executed and passed (`app.test.jsx` dashboard test; real browser run); nutrition chart shows only when data exists (D-040) |
 | FR-023 | P0 | In-app alerts only [§2, Out of scope] | L5 | review: no email/push/SMS deps | — | `GET /api/v1/expiry-alerts` only | Implemented; dependency review: no mail/push/SMS library in `pom.xml` |
 | FR-024 | P0 | Input validation, safe stable errors | L2–L9 | QA-004, QA-019, QA-020 | — | `web/ApiErrors.java`, `web/RequestIdFilter.java`, DTO + DB checks | Auth + pantry passed (incl. NaN/Infinity/invalid date → 400, SQL/markup stored as data); UI rendering half of QA-020 pending L11 |
 | FR-025 | P0 | Paid-free, fixture-based tests | L1–L11 | QA-018, QA-023 | — | — | Not implemented |
@@ -43,8 +43,8 @@ Status values: **Not implemented** · **Implemented (code evidence)** · **Execu
 | NFR-004 | Local reproducibility | ROAD-033 clean-setup run | Not implemented |
 | NFR-005 | Predictable failures, safe errors | QA-017 | Executed and passed: envelope (`ApiErrorsTests`), AI down/slow/500 → 503/504/502 (`RecipeSuggestionTests` + real run with the AI service stopped), DB outage and missing model → 503 in the AI service |
 | NFR-006 | Maintainability, pinned deps, contracts | Lockfiles, OpenAPI | Not implemented |
-| NFR-007 | Accessibility | Frontend interaction tests, keyboard pass, Impeccable audit | Not implemented |
-| NFR-008 | Responsive usability | Viewport checks (mobile/tablet/desktop) | Not implemented |
+| NFR-007 | Accessibility | Frontend interaction tests, keyboard pass, Impeccable audit | Executed and passed: labelled fields with linked errors, keyboard focus ring checked in the browser, status as text + icon, contrast ≥ 5.09:1 for every token pair in both themes, charts with text summaries/tables; Impeccable detector clean (static + live login page) |
+| NFR-008 | Responsive usability | Viewport checks (mobile/tablet/desktop) | Executed and passed in the built-in browser at 375×812, 768×1024 and 1280×800 (no horizontal page scroll, 44 px touch targets on touch screens), light and dark |
 | NFR-009 | Measured performance baseline | ROAD-029 | Not implemented |
 | NFR-010 | Data integrity constraints | QA-005, QA-025, DB integration tests | Executed and passed: DB constraints (`SchemaConstraintsTests`) + atomic/locked/idempotent stock events (`PantryTests`, incl. 10-way and 8-way concurrency) |
 | NFR-011 | Honest test status | This file + PROGRESS.md | In effect (process) |

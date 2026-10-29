@@ -14,7 +14,7 @@ Each loop = one coherent slice: plan → smallest change → focused tests → r
 | L8 ✓ | Meal plan (21 slots, unavailable reasons) + grocery list (unit conversion, unresolved) + check-off | 021 | FR-015–018 | A-10, B-01 | QA-011/012 |
 | L9 ✓ | Dashboard: waste/money saved, nutrition completeness, chart data | 012, 022 | FR-019–022 | A-06, nutrition source | QA-013/014 |
 | L10 ✓ | Cuisine classifier (train/eval script, versioned artifact) + waste predictor (`insufficient_data` until real history) | 019, 020 | FR-013, FR-014 | labelled data, A-11 | QA-015/016 |
-| L11 | Frontend: auth, pantry, alerts, preferences, recipes, plan, grocery, dashboard (taste → emil → impeccable) | 013–016 | NFR-007/008, all UI | APIs stable | Vitest/RTL, keyboard + viewport checks, Impeccable audit |
+| L11 ✓ | Frontend: auth, pantry, alerts, preferences, recipes, plan, grocery, dashboard (taste → emil → impeccable) | 013–016 | NFR-007/008, all UI | APIs stable | Vitest/RTL, keyboard + viewport checks, Impeccable audit |
 | L12 | CI workflow: 3 jobs (+ dependency scans), no deploy; verify pass and deliberate fail | 030–032 | FR-025/026, NFR-012 | B-04 | Real GitHub Actions runs |
 | L13 | Security review, E2E journey, perf baseline, ponytail-audit, attribution/secret scans, docs final | 024, 026–029, 033–034 | NFR-002/005/009/011 | — | QA-017–024, ROAD-033 clean setup |
 

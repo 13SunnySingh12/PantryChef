@@ -85,9 +85,11 @@ Without a trained model, cuisine classification answers "not available"; the was
 
 ## Run locally
 
-- Frontend: `cd frontend && npm run dev`
+- Frontend: `cd frontend && npm run dev` (http://localhost:5173; `/api` is forwarded to the backend on port 8080, or to `PANTRYCHEF_BACKEND_URL`)
 - Backend (after `docker compose up -d`): `cd backend && ./mvnw spring-boot:run`
 - AI service (needs `AI_DATABASE_URL` and `SERVICE_TO_SERVICE_SECRET`; the backend needs the same secret): `cd ai-service && .venv/bin/python -m uvicorn app.main:app --port 8000`
+
+Signing in keeps the access token in memory only, so reloading the page signs you out (decision D-008).
 
 Allergen and diet information is derived from the recipe sources plus a reviewed ingredient list
 (`database/reference/ingredient_allergens.json`). It can be incomplete, and PantryChef does not guarantee that a recipe

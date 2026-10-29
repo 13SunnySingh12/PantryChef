@@ -1,12 +1,25 @@
 {
-  "version": "2026-10-25.1",
-  "status": "draft: pending review by the project owner (approved in principle on 2026-10-25)",
-  "scope": "Top allergen codes from decision A-08. Not medical advice; cross-contamination is not modelled.",
+  "version": "2026-10-29.1",
+  "status": "approved 2026-10-29 (D-031) under the project owner's instruction; reviewed against the real recipe data, not certified. Not a regulatory or completeness claim.",
+  "scope": "The 9 allergen codes from decision A-08 (unchanged). Not medical advice; cross-contact is not modelled. Flags mean 'contains or may contain'.",
   "how_it_is_used": [
+    "synonyms: whole-phrase rewrites applied while normalizing, before units and prep words are removed (e.g. 'gram flour' -> 'chickpea flour'). Exact identities only; no fuzzy or substring matching.",
     "keywords: any ingredient whose normalized name contains a keyword (whole-word match) gets that allergen flag. Keywords only ADD flags; they never make a recipe's allergen data complete.",
-    "keyword_exceptions: phrases that contain a keyword but are not that allergen (e.g. coconut milk is not dairy).",
-    "known: single foods whose allergen codes are known. A recipe is allergen-complete only if EVERY ingredient matches a 'known' entry exactly. Composite or variable products (bread, pasta, stock, sauces, spice blends, chocolate, vegetable oil) are deliberately absent, so recipes using them stay 'unknown' and are excluded for users with allergen exclusions."
+    "keyword_exceptions: phrases that contain a keyword but are not that allergen (e.g. coconut milk is not dairy). Phrases are written in normalized form.",
+    "known: single foods whose allergen codes are known, keyed by their normalized name. A recipe is allergen-complete only if EVERY ingredient matches a 'known' entry exactly. Ambiguous products that are still useful (generic oil, vinegar, baking powder) list every allergen they may contain. Composite or variable products (bread, pasta, stock, sauces, spice blends, chocolate, mayonnaise) are deliberately absent, so recipes using them stay 'unknown' and are excluded for users with allergen exclusions."
   ],
+  "synonyms": {
+    "gram flour": "chickpea flour",
+    "garbanzo bean": "chickpea",
+    "yoghurt": "yogurt",
+    "groundnut": "peanut",
+    "hing": "asafoetida",
+    "bicarbonate of soda": "baking soda",
+    "white sugar": "sugar",
+    "superfine sugar": "caster sugar",
+    "chili pepper": "chili",
+    "hard boiled egg": "egg"
+  },
   "keywords": {
     "dairy": [
       "milk",
@@ -35,7 +48,22 @@
       "lassi",
       "condensed milk",
       "evaporated milk",
-      "creme fraiche"
+      "creme fraiche",
+      "dahi",
+      "malai",
+      "chhena",
+      "chenna",
+      "mawa",
+      "lactose",
+      "gruyere",
+      "halloumi",
+      "gouda",
+      "brie",
+      "camembert",
+      "emmental",
+      "pecorino",
+      "provolone",
+      "quark"
     ],
     "eggs": [
       "egg",
@@ -80,7 +108,24 @@
       "cake",
       "spelt",
       "farro",
-      "malt"
+      "malt",
+      "oat",
+      "oats",
+      "oatmeal",
+      "durum",
+      "kamut",
+      "triticale",
+      "freekeh",
+      "panko",
+      "sooji",
+      "dalia",
+      "vermicelli",
+      "sevai",
+      "seviyan",
+      "roti",
+      "chapati",
+      "paratha",
+      "tamari"
     ],
     "soy": [
       "soy",
@@ -90,13 +135,18 @@
       "tofu",
       "tempeh",
       "edamame",
-      "miso"
+      "miso",
+      "natto",
+      "shoyu",
+      "tamari"
     ],
     "peanuts": [
       "peanut",
       "peanuts",
       "groundnut",
-      "groundnuts"
+      "groundnuts",
+      "arachis",
+      "satay"
     ],
     "tree_nuts": [
       "almond",
@@ -119,7 +169,9 @@
       "marzipan",
       "nut",
       "nuts",
-      "coconut"
+      "coconut",
+      "chestnut",
+      "chestnuts"
     ],
     "fish": [
       "fish",
@@ -144,7 +196,13 @@
       "catfish",
       "pomfret",
       "hilsa",
-      "rohu"
+      "rohu",
+      "bonito",
+      "dashi",
+      "katsuobushi",
+      "roe",
+      "caviar",
+      "seafood"
     ],
     "shellfish": [
       "shrimp",
@@ -165,13 +223,18 @@
       "squid",
       "calamari",
       "octopus",
-      "langoustine"
+      "langoustine",
+      "shellfish",
+      "seafood",
+      "krill"
     ],
     "sesame": [
       "sesame",
       "tahini",
       "gingelly",
-      "til"
+      "til",
+      "zaatar",
+      "za'atar"
     ]
   },
   "keyword_exceptions": {
@@ -188,9 +251,7 @@
       "almond butter",
       "cashew butter",
       "coconut cream",
-      "cream of tartar",
       "butter bean",
-      "butter beans",
       "butternut squash",
       "butternut",
       "cream tartar"
@@ -200,23 +261,19 @@
       "corn flour",
       "cornflour",
       "chickpea flour",
-      "gram flour",
       "besan",
       "tapioca flour",
       "potato flour",
-      "rice noodle",
-      "rice noodles"
+      "rice noodle"
     ],
     "eggs": [
-      "eggplant",
-      "eggplants"
+      "eggplant"
     ],
     "tree_nuts": [
       "nutmeg",
       "butternut",
       "butternut squash",
-      "water chestnut",
-      "water chestnuts"
+      "water chestnut"
     ]
   },
   "known": {
@@ -240,7 +297,6 @@
     "leek": [],
     "garlic": [],
     "ginger": [],
-    "fresh ginger": [],
     "tomato": [],
     "cherry tomato": [],
     "potato": [],
@@ -282,8 +338,6 @@
     "green chilli": [],
     "red chilli": [],
     "jalapeno": [],
-    "chilli powder": [],
-    "chili powder": [],
     "red chilli powder": [],
     "cayenne pepper": [],
     "paprika": [],
@@ -344,7 +398,6 @@
     "chana dal": [],
     "chickpea": [],
     "chickpea flour": [],
-    "gram flour": [],
     "besan": [],
     "kidney bean": [],
     "black bean": [],
@@ -354,24 +407,22 @@
     "turmeric": [],
     "cumin": [],
     "cumin seed": [],
-    "ground cumin": [],
     "coriander": [],
     "coriander seed": [],
-    "ground coriander": [],
     "coriander leaf": [],
     "cilantro": [],
     "cardamom": [],
     "green cardamom": [],
-    "clove": [],
     "cinnamon": [],
-    "cinnamon stick": [],
     "bay leaf": [],
     "star anise": [],
     "nutmeg": [],
     "fenugreek": [],
     "fenugreek seed": [],
     "kasuri methi": [],
-    "asafoetida": [],
+    "asafoetida": [
+      "gluten"
+    ],
     "mustard seed": [],
     "fennel seed": [],
     "curry leaf": [],
@@ -389,33 +440,30 @@
     "chive": [],
     "tarragon": [],
     "olive oil": [],
-    "extra virgin olive oil": [],
     "sunflower oil": [],
     "canola oil": [],
     "mustard oil": [],
-    "vinegar": [],
+    "vinegar": [
+      "gluten"
+    ],
     "white vinegar": [],
     "apple cider vinegar": [],
     "red wine vinegar": [],
     "baking soda": [],
-    "bicarbonate of soda": [],
-    "baking powder": [],
+    "baking powder": [
+      "gluten"
+    ],
     "yeast": [],
-    "dry yeast": [],
     "chicken": [],
     "chicken breast": [],
     "chicken thigh": [],
     "beef": [],
-    "ground beef": [],
     "pork": [],
     "lamb": [],
     "mutton": [],
     "goat": [],
     "turkey": [],
     "milk": [
-      "dairy"
-    ],
-    "whole milk": [
       "dairy"
     ],
     "butter": [
@@ -488,9 +536,6 @@
       "gluten"
     ],
     "self raising flour": [
-      "gluten"
-    ],
-    "whole wheat flour": [
       "gluten"
     ],
     "maida": [
@@ -595,7 +640,6 @@
     "plum tomato": [],
     "tinned tomato": [],
     "canned tomato": [],
-    "chopped tomato": [],
     "tomato paste": [],
     "tomato puree": [],
     "cider vinegar": [],
@@ -610,13 +654,7 @@
     "orange zest": [],
     "new potato": [],
     "baby spinach": [],
-    "chickpeas": [],
-    "lentils": [],
-    "dried oregano": [],
     "smoked paprika": [],
-    "ground ginger": [],
-    "ground cinnamon": [],
-    "garam masala": [],
     "chicken leg": [],
     "chicken wing": [],
     "flour": [
@@ -655,15 +693,9 @@
     "condensed milk": [
       "dairy"
     ],
-    "mayonnaise": [
-      "eggs"
-    ],
     "soy sauce": [
       "soy",
       "gluten"
-    ],
-    "fish sauce": [
-      "fish"
     ],
     "coconut milk": [
       "tree_nuts"
@@ -689,23 +721,32 @@
     "peanut oil": [
       "peanuts"
     ],
-    "vegetable oil": [],
-    "oil": [],
+    "vegetable oil": [
+      "peanuts",
+      "soy"
+    ],
+    "oil": [
+      "peanuts",
+      "sesame",
+      "soy"
+    ],
     "virgin olive oil": [],
     "palm oil": [],
     "rapeseed oil": [],
     "corn oil": [],
-    "groundnut oil": [
-      "peanuts"
-    ],
     "coconut oil": [
       "tree_nuts"
     ],
     "chile": []
   },
+  "update_process": [
+    "Edit this file, bump 'version', and run `python -m pytest -q tests/test_ingredients.py` (every key must already be in normalized form, every code must be one of the 9 approved codes, every synonym must point at a known entry).",
+    "Check the effect with `python scripts/import_recipes.py --dry-run` (allergen_complete per source), then re-import so stored recipes pick up the change. Record the decision in docs/implementation/DECISIONS_AND_BLOCKERS.md.",
+    "Only add a 'known' entry for a single food whose allergen status does not vary by brand; when unsure, leave it out (unknown) or list every allergen it may contain."
+  ],
   "notes_for_review": [
-    "Generic 'vegetable oil' and 'oil' are treated as allergen-free because highly refined oils are exempt from allergen labelling in the US (FALCPA) and EU. Cold-pressed nut/seed oils are not covered by this: 'groundnut oil' and 'peanut oil' stay flagged peanuts, 'sesame oil' sesame, 'coconut oil' tree_nuts. Remove 'vegetable oil' and 'oil' if you prefer recipes with them to stay 'unknown'.",
-    "'flour' is treated as wheat flour (gluten). 'soy sauce' is flagged soy and gluten. 'coconut' is flagged tree_nuts as a conservative choice.",
-    "Composite products (stock, broth, bread, pasta, sausages, bacon, chorizo, wine, mustard, ketchup, chocolate, margarine, Worcestershire sauce) are deliberately left unknown."
+    "Highly refined oils are exempt from allergen labelling in the US and EU, but an unnamed 'oil' cannot be told apart from cold-pressed groundnut or sesame oil, so it carries those flags.",
+    "'flour' is treated as wheat flour (gluten). 'soy sauce' stays known as soy + gluten: every variant contains at most those. 'coconut' is flagged tree_nuts as a conservative choice. Oats are flagged gluten (EU lists oats as a cereal containing gluten; contamination is common).",
+    "Ingredient names that are dropped entirely by normalization (e.g. whole 'cloves', where 'clove' is also a unit word) produce an empty key and therefore stay unknown."
   ]
 }

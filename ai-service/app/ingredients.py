@@ -6,6 +6,7 @@ always kept separately; the key is only for matching and dictionary lookups.
 
 import json
 import re
+import unicodedata
 from fractions import Fraction
 from functools import lru_cache
 from pathlib import Path
@@ -68,13 +69,26 @@ def singular(word: str) -> str:
     return word[:-1] if word.endswith("s") else word
 
 
+@lru_cache(maxsize=1)
+def _synonyms() -> tuple[re.Pattern, dict[str, str]]:
+    """Whole-phrase rewrites from the allergen dictionary (D-031), longest first, optional plural 's'."""
+    table = dictionary()["synonyms"]
+    phrases = "|".join(re.escape(p) for p in sorted(table, key=len, reverse=True))
+    return re.compile(rf"\b({phrases})s?\b"), table
+
+
 def normalize(text: str) -> str:
-    """Matching key: lowercase, no quantities/units/prep words/brackets/punctuation, last word singular."""
+    """Matching key: lowercase, accents folded, documented synonyms applied, no quantities/units/prep
+    words/brackets/punctuation, last word singular."""
     text = text.lower().replace("⁄", "/")
     for symbol, ascii_fraction in UNICODE_FRACTIONS.items():
         text = text.replace(symbol, " " + ascii_fraction + " ")
+    text = "".join(c for c in unicodedata.normalize("NFKD", text) if not unicodedata.combining(c))  # jalapeño
     text = re.sub(r"\(.*?\)", " ", text).split(",")[0]
-    words = [w for w in re.sub(r"[^a-z0-9 /'-]", " ", text).replace("-", " ").split()
+    text = " ".join(re.sub(r"[^a-z0-9 /'-]", " ", text).replace("-", " ").split())
+    pattern, table = _synonyms()
+    text = pattern.sub(lambda m: table[m.group(1)], text)
+    words = [w for w in text.split()
              if not w[0].isdigit() and w not in DESCRIPTORS and w not in UNIT_WORDS and w not in OTHER_UNITS
              and w not in CONVERTED_UNITS]
     if not words:

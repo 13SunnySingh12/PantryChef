@@ -4,7 +4,7 @@ Legend: `[✓]` completed and verified · `[→]` in progress · `[ ]` pending �
 
 ## Current state (2026-10-25)
 
-**Loop 11 (frontend) complete and verified locally; CI result recorded below. Next: L12 CI hardening (deliberate-failure run, PR trigger, Java dependency scan). Open decisions: allergen dictionary review (D-031), plan start date (A-10), cuisine acceptance threshold (TBD-027); optional `/impeccable init` for a PRODUCT.md.**
+**Loop 11 (frontend) complete; verified locally and in CI. Next: L12 CI hardening (deliberate-failure run, PR trigger, Java dependency scan). Open decisions: allergen dictionary review (D-031), plan start date (A-10), cuisine acceptance threshold (TBD-027); optional `/impeccable init` for a PRODUCT.md.**
 
 ### Loop 11 — Frontend (2026-10-29) `[✓]`
 
@@ -23,6 +23,9 @@ Legend: `[✓]` completed and verified · `[→]` in progress · `[ ]` pending �
 | Impeccable detector | no findings (static scan of `frontend/src`, live scan of the login page) |
 | Contrast (computed) | every text/status token pair ≥ 5.09:1 in light and dark |
 | Logs | 0 secrets in backend/AI logs from the browser session |
+| Regression gate (all three suites) | frontend 12, backend 87, ai-service 114 passed |
+
+Commits `b0be1ef` (backend messages), `63b7bd9` (web app), `4c2bebf` (docs), pushed. CI run [40818872193](https://github.com/13SunnySingh12/PantryChef/actions/runs/40818872193) on `4c2bebf`: **success** (frontend, backend, ai-service). Follow-up commit fixes the test file name's case in git (`App.test.jsx` → `app.test.jsx`; Windows had kept the old casing).
 
 Not covered: the detector could only load the sign-in page (other pages need a signed-in session); first recipe search took about 8 s (measure in L13); no PRODUCT.md (offer `/impeccable init`).
 

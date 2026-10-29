@@ -95,4 +95,4 @@ Allergen and diet information is derived from the recipe sources plus a reviewed
 (`database/reference/ingredient_allergens.json`). It can be incomplete, and PantryChef does not guarantee that a recipe
 is safe for an allergy.
 
-CI (`.github/workflows/ci.yml`) runs these checks plus `npm audit` and `pip-audit` on every push to `main` and every pull request.
+CI (`.github/workflows/ci.yml`) runs these checks plus `npm audit`, `pip-audit` and an OSV-Scanner check of the backend's resolved dependencies on every push to `main` and every pull request.

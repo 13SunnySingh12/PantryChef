@@ -4,7 +4,24 @@ Legend: `[✓]` completed and verified · `[→]` in progress · `[ ]` pending �
 
 ## Current state (2026-10-25)
 
-**Loop 11 (frontend) complete; verified locally and in CI. Next: L12 CI hardening (deliberate-failure run, PR trigger, Java dependency scan). Open decisions: allergen dictionary review (D-031), plan start date (A-10), cuisine acceptance threshold (TBD-027); optional `/impeccable init` for a PRODUCT.md.**
+**Loop 12 (CI hardening) complete; verified in GitHub Actions. Next: L13 (security review, end-to-end journey, performance baseline, ponytail-audit, final docs). Open decisions: allergen dictionary review (D-031), plan start date (A-10), cuisine acceptance threshold (TBD-027); optional `/impeccable init` for a PRODUCT.md.**
+
+### Loop 12 — CI hardening (2026-10-29) `[✓]`
+
+- Backend job gains a dependency scan: Maven CycloneDX SBOM → OSV-Scanner v2.7.0, release checksum verified (D-045, resolves TBD-022)
+- Temporary PR 13SunnySingh12/PantryChef#1 from `ci/deliberate-failure`, closed without merging
+
+| Check | Result |
+|---|---|
+| First scanner attempt (`pom.xml`), run [40819269353](https://github.com/13SunnySingh12/PantryChef/actions/runs/40819269353) | passed but **checked nothing**: 13 packages found, all 13 filtered as unscannable (versions come from the Spring Boot BOM) → replaced |
+| SBOM scan on `main`, run [40819606793](https://github.com/13SunnySingh12/PantryChef/actions/runs/40819606793) on `1ea5c95` | **success**; 71 resolved packages scanned, no known vulnerabilities; frontend, backend and ai-service all success |
+| PR phase 1: a failing test in each module, run [40819841417](https://github.com/13SunnySingh12/PantryChef/actions/runs/40819841417) (`pull_request`) | **failure** as intended: frontend 1 failed / 12 passed, backend only `DeliberateFailureTests` failed, ai-service 1 failed / 114 passed |
+| PR phase 2: commons-collections 3.2.1 added, run [40820080227](https://github.com/13SunnySingh12/PantryChef/actions/runs/40820080227) | **failure** as intended, only the backend dependency scan: 72 packages, GHSA-fjq5-5j5f-mvxh (CVSS 9.8) and GHSA-6hgm-866r-3cjv |
+| PR phase 3: dependency removed, run [40820280614](https://github.com/13SunnySingh12/PantryChef/actions/runs/40820280614) | **success**; branch content identical to `main` |
+| Workflow review | no deploy, publish or release step; `permissions: contents: read`; no secrets used |
+| Regression gate | no application code changed since the Loop 11 gate (only a test-file rename); all three suites passed on `main` in run 40819606793; full-stack startup last verified in the Loop 11 browser run |
+
+Not covered: running OSV-Scanner locally (a downloaded binary was blocked on this machine, so the scan runs only in CI); test-scope Java dependencies are not scanned; the `ci/deliberate-failure` branch still exists on GitHub (delete it only if you want).
 
 ### Loop 11 — Frontend (2026-10-29) `[✓]`
 
@@ -296,7 +313,8 @@ Tests executed: **none** (no code exists). Git commits/pushes: **none**.
 | 2026-10-29 | Loop 9 dashboard API |
 | 2026-10-29 | Loop 10 cuisine classifier, waste insufficient-data contract |
 | 2026-10-29 | Loop 11 frontend |
+| 2026-10-29 | Loop 12 CI dependency scan, PR trigger and deliberate-failure proof |
 
 ## Next safe action
 
-L12: prove CI fails when a required check fails (temporary branch + PR, then revert), confirm the pull_request trigger, decide the Java dependency scanner (TBD-022: OWASP dependency-check needs a free NVD API key, or GitHub dependency review on PRs).
+L13: security review (QA-019–023), end-to-end journey, performance baseline (ROAD-029, incl. the ~8 s first recipe search), ponytail-audit, attribution/secret scans, clean-setup run (ROAD-033), final docs.

@@ -31,7 +31,7 @@ Status values: **Not implemented** · **Implemented (code evidence)** · **Execu
 | FR-023 | P0 | In-app alerts only [§2, Out of scope] | L5 | review: no email/push/SMS deps | — | `GET /api/v1/expiry-alerts` only | Implemented; dependency review: no mail/push/SMS library in `pom.xml` |
 | FR-024 | P0 | Input validation, safe stable errors | L2–L9 | QA-004, QA-019, QA-020 | — | `web/ApiErrors.java`, `web/RequestIdFilter.java`, DTO + DB checks | Auth + pantry passed (incl. NaN/Infinity/invalid date → 400, SQL/markup stored as data); UI rendering half of QA-020 pending L11 |
 | FR-025 | P0 | Paid-free, fixture-based tests | L1–L11 | QA-018, QA-023 | — | — | Not implemented |
-| FR-026 | P0 | CI on push + PR, no deploy [§9] | L1, L12 | QA-024 | — | `.github/workflows/ci.yml` | Implemented; push run 40175915022 passed; PR trigger + deliberate failure Not Run |
+| FR-026 | P0 | CI on push + PR, no deploy [§9] | L1, L12 | QA-024 | — | `.github/workflows/ci.yml` | Executed and passed: push runs pass; on the pull_request trigger (PR 13SunnySingh12/PantryChef#1) a failing test in each module failed all three jobs (run 40819841417), a known-vulnerable dependency failed the backend scan (run 40820080227), and the fixed branch passed (run 40820280614) |
 
 ## Non-functional requirements
 
@@ -48,7 +48,7 @@ Status values: **Not implemented** · **Implemented (code evidence)** · **Execu
 | NFR-009 | Measured performance baseline | ROAD-029 | Not implemented |
 | NFR-010 | Data integrity constraints | QA-005, QA-025, DB integration tests | Executed and passed: DB constraints (`SchemaConstraintsTests`) + atomic/locked/idempotent stock events (`PantryTests`, incl. 10-way and 8-way concurrency) |
 | NFR-011 | Honest test status | This file + PROGRESS.md | In effect (process) |
-| NFR-012 | CI without deployment | QA-024; workflow review | Not implemented |
+| NFR-012 | CI without deployment | QA-024; workflow review | Executed and passed: workflow review finds no deploy, publish or release step and only `contents: read`; deliberate-failure runs fail as expected (QA-024) |
 
 ## QA → requirement map (Complete §9.3, with S-4 correction)
 

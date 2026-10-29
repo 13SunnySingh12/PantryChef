@@ -2,6 +2,7 @@ package com.pantrychef.auth;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -104,6 +105,22 @@ class AuthTests {
 	}
 
 	@Test
+	void oversizedAndUnmeasuredBodiesAreRejectedBeforeParsing() throws Exception {
+		String email = email();
+		String huge = "{\"email\":\"" + email + "\",\"password\":\"" + "x".repeat(70 * 1024) + "\"}";
+		this.mvc.perform(post("/api/v1/auth/register").contentType(MediaType.APPLICATION_JSON).content(huge))
+			.andExpect(status().isPayloadTooLarge())
+			.andExpect(jsonPath("$.error.code").value("PAYLOAD_TOO_LARGE"))
+			.andExpect(jsonPath("$.error.requestId").isNotEmpty());
+		assertThat(this.db.sql("SELECT count(*) FROM users WHERE email = ?").param(email).query(Long.class).single())
+			.isZero();
+		this.mvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON)
+			.header("Transfer-Encoding", "chunked"))
+			.andExpect(status().isLengthRequired())
+			.andExpect(jsonPath("$.error.code").value("LENGTH_REQUIRED"));
+	}
+
+	@Test
 	void wrongPasswordAndUnknownEmailGetTheSameGenericError() throws Exception {
 		String email = email();
 		register(email, PASSWORD).andExpect(status().isCreated());
@@ -171,6 +188,16 @@ class AuthTests {
 	void logoutIsIdempotentAndNeedsNoSession() throws Exception {
 		this.mvc.perform(post("/api/v1/auth/logout")).andExpect(status().isNoContent());
 		this.mvc.perform(post("/api/v1/auth/logout")).andExpect(status().isNoContent());
+	}
+
+	@Test
+	void otherOriginsGetNoCorsPermission() throws Exception {
+		// The browser reaches the API only through the same-origin dev proxy, so no origin is ever allowed.
+		this.mvc.perform(options("/api/v1/auth/login").header("Origin", "https://evil.example")
+			.header("Access-Control-Request-Method", "POST"))
+			.andExpect(header().doesNotExist("Access-Control-Allow-Origin"));
+		this.mvc.perform(post("/api/v1/auth/logout").header("Origin", "https://evil.example"))
+			.andExpect(header().doesNotExist("Access-Control-Allow-Origin"));
 	}
 
 	@Test

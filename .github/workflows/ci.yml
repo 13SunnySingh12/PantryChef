@@ -45,13 +45,15 @@ jobs:
           java-version: 21
           cache: maven
       - run: ./mvnw -B verify
-      # OSV-Scanner resolves pom.xml (incl. transitive deps) and checks OSV.dev; no API key needed (D-045).
-      - name: Dependency scan (OSV-Scanner v2.7.0)
+      # Maven writes the resolved runtime dependency tree as a CycloneDX SBOM; OSV-Scanner checks it against
+      # OSV.dev (no API key). Scanning pom.xml directly skipped every BOM-managed version (D-045).
+      - name: Dependency scan (CycloneDX SBOM + OSV-Scanner v2.7.0)
         run: |
+          ./mvnw -B -q org.cyclonedx:cyclonedx-maven-plugin:2.9.3:makeBom -DoutputFormat=json
           curl -fsSL -o /tmp/osv-scanner https://github.com/google/osv-scanner/releases/download/v2.7.0/osv-scanner_linux_amd64
           echo "160c6253e2922e9e0a6a9771c5c4c40a4b3c6090b34a3cdd5e80c96cc2e4218b  /tmp/osv-scanner" | sha256sum -c -
           chmod +x /tmp/osv-scanner
-          /tmp/osv-scanner scan source -L pom.xml
+          /tmp/osv-scanner scan source -L target/bom.json
 
   ai-service:
     runs-on: ubuntu-latest

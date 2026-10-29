@@ -2,9 +2,41 @@
 
 Legend: `[✓]` completed and verified · `[→]` in progress · `[ ]` pending · `[!]` manual action required · `[✗]` failed/blocked
 
-## Current state (2026-10-25)
+## Current state (2026-10-29)
 
-**Loop 12 (CI hardening) complete; verified in GitHub Actions. Next: L13 (security review, end-to-end journey, performance baseline, ponytail-audit, final docs). Open decisions: allergen dictionary review (D-031), plan start date (A-10), cuisine acceptance threshold (TBD-027); optional `/impeccable init` for a PRODUCT.md.**
+**All planned loops (L1–L13) complete and verified; see [RELEASE_READINESS.md](RELEASE_READINESS.md). Open decisions for the owner: allergen dictionary review (D-031), plan start date (A-10), cuisine acceptance threshold (TBD-027). Blocked: waste-risk model (B-03, needs real usage history).**
+
+### Loop 13 — Security, clean setup, performance, final review (2026-10-29) `[✓]`
+
+- Security review (QA-019–023, ROAD-024): SQL only joins constant fragments, every value is bound; recipe links are always built as `https://` Wikibooks/TheMealDB URLs; existing tests already covered injection, XSS, token and ownership cases, internal-service auth and the read-only AI role
+- Added: request-body cap (413 over 64 KB, 411 without a length) and a closed-CORS test (D-047); frontend journey test (register → add item → expiring → plan → grocery check-off) against a stateful fake backend
+- Fixed: local service URLs use `127.0.0.1` (D-046)
+- Ponytail audit: removed the unused `hasToken()`; nothing else worth cutting (about 5,300 lines across three services)
+- Commits `b1dc430`, `c303cdb`, `002bbc7`; CI run [40824013913](https://github.com/13SunnySingh12/PantryChef/actions/runs/40824013913) on `002bbc7`: **success**
+
+| Check | Result |
+|---|---|
+| Clean clone from GitHub (`24823a9`), module checks | npm ci 39 s, lint, test, build, audit; `mvnw verify` 75 s; venv + pip install 406 s, pytest 54 s, compileall: all exit 0 |
+| Clean clone, full stack from the README | DB on a separate port; backend started in 8.2 s and applied 3 migrations; sources fetched (357 s), 4,068 recipes imported and embedded (251 s; 4,067 in Loop 7, one source changed); cuisine retrained (22 s) to the same test macro-F1 0.5156 |
+| Size cap and CORS tests | `AuthTests` 2 new tests; mutations (cap → `Long.MAX_VALUE`, 411 branch off, allow-all CORS) each failed their test → restored |
+| Journey test | passes; mutation (pantry list not reloaded after adding) fails it. First version shared arrays with the page, which let that mutation pass; fixed by returning copies |
+| Regression | backend 89 tests BUILD SUCCESS; frontend 13 tests (one unexplained failure in a run alongside the backend build and recipe import, then 4 clean reruns); lint clean |
+| Secrets (QA-023) | no secrets in tracked files, all history or the last 12 CI logs; `.env` ignored; no local `.env` exists; clean-run logs: none of the 4 throwaway secrets, no tokens, no password lines |
+
+Performance baseline (same laptop, other projects running; 10 pantry items; median of n runs):
+
+| Workflow | n | before (`localhost`) | after (`127.0.0.1`) | p95 after |
+|---|---|---|---|---|
+| First recipe search after start (model load) | 1 | 5,652 ms | 395 ms | — |
+| Recipe search (warm) | 10 | 5,252 ms | 219 ms | 362 ms |
+| Generate 7-day plan (21/21 slots, 53 grocery lines) | 5 | 5,536 ms | 488 ms | 632 ms |
+| Grocery recalculation | 5 | 5,170 ms | 141 ms | 166 ms |
+| Login (BCrypt) | 10 | 117 ms | 112 ms | 131 ms |
+| Pantry list / alerts / plan view / dashboard | 20 each | 7–11 ms | 7–12 ms | 31–34 ms |
+
+Cause of the old numbers: `localhost` → `::1` first; refused IPv6 connects cost about 2 s each on Windows (direct test: psycopg via `localhost` 10,038 ms, via `127.0.0.1` 15 ms).
+
+Not covered: no automated browser test against the real stack; the frontend flake was not reproduced, so its cause is unknown; stopping the services once ended more of this session's own processes than intended (wrapper shells only, nothing of yours).
 
 ### Loop 12 — CI hardening (2026-10-29) `[✓]`
 
@@ -314,7 +346,8 @@ Tests executed: **none** (no code exists). Git commits/pushes: **none**.
 | 2026-10-29 | Loop 10 cuisine classifier, waste insufficient-data contract |
 | 2026-10-29 | Loop 11 frontend |
 | 2026-10-29 | Loop 12 CI dependency scan, PR trigger and deliberate-failure proof |
+| 2026-10-29 | Loop 13 security review, clean setup, performance baseline, release checklist |
 
 ## Next safe action
 
-L13: security review (QA-019–023), end-to-end journey, performance baseline (ROAD-029, incl. the ~8 s first recipe search), ponytail-audit, attribution/secret scans, clean-setup run (ROAD-033), final docs.
+No loops remain. Next owner actions: decide D-031, A-10 and TBD-027 (see [RELEASE_READINESS.md](RELEASE_READINESS.md)); B-03 stays blocked until real usage history exists.

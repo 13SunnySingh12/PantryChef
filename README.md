@@ -4,7 +4,7 @@ Cook with what you already have. Waste less food, save more money.
 
 Zero-waste meal planner: pantry and expiry tracking, in-app expiry alerts, pantry-based recipe suggestions, a weekly meal plan with grocery list, and a savings/nutrition dashboard. Runs locally; deployment is out of scope.
 
-Specifications: [PantryChef.md](PantryChef.md) (overview) and [PantryChef_Complete.md](PantryChef_Complete.md) (full spec). Implementation status: [docs/implementation/](docs/implementation/PROGRESS.md).
+Specifications: [PantryChef.md](PantryChef.md) (overview) and [PantryChef_Complete.md](PantryChef_Complete.md) (full spec). Implementation status: [docs/implementation/](docs/implementation/PROGRESS.md); known limitations and open decisions: [RELEASE_READINESS.md](docs/implementation/RELEASE_READINESS.md).
 
 ## Layout
 

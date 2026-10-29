@@ -1,6 +1,6 @@
 # PantryChef — Requirement Traceability
 
-Status values: **Not implemented** · **Implemented (code evidence)** · **Executed and passed** · **Executed and failed** · **Blocked** · **Out of Scope**. Every requirement below is *Confirmed by source* (PantryChef_Complete.md §2.3/§2.5; short-spec section in brackets). As of 2026-10-25 nothing is implemented; code/test columns are filled as loops land.
+Status values: **Not implemented** · **Implemented (code evidence)** · **Executed and passed** · **Executed and failed** · **Blocked** · **Out of Scope**. Every requirement below is *Confirmed by source* (PantryChef_Complete.md §2.3/§2.5; short-spec section in brackets). Updated 2026-10-29 after Loop 13; see [RELEASE_READINESS.md](RELEASE_READINESS.md) for the summary and known limitations.
 
 ## Functional requirements
 
@@ -29,23 +29,23 @@ Status values: **Not implemented** · **Implemented (code evidence)** · **Execu
 | FR-021 | P1 | Weekly nutrition summary [§7] | L9 | QA-014 | **D-040 open** | same | Aggregation Executed and passed (one serving per meal, missing data counted, null not 0, mutation-tested); **no recipe has nutrition data yet**, so real values are all unknown |
 | FR-022 | P1 | Bar/line charts [§7] | L9 (data), L11 (UI) | QA-014 | — | `frontend/src/pages/DashboardPage.jsx` (Recharts line + bar, text summary, data table) | Executed and passed (`app.test.jsx` dashboard test; real browser run); nutrition chart shows only when data exists (D-040) |
 | FR-023 | P0 | In-app alerts only [§2, Out of scope] | L5 | review: no email/push/SMS deps | — | `GET /api/v1/expiry-alerts` only | Implemented; dependency review: no mail/push/SMS library in `pom.xml` |
-| FR-024 | P0 | Input validation, safe stable errors | L2–L9 | QA-004, QA-019, QA-020 | — | `web/ApiErrors.java`, `web/RequestIdFilter.java`, DTO + DB checks | Auth + pantry passed (incl. NaN/Infinity/invalid date → 400, SQL/markup stored as data); UI rendering half of QA-020 pending L11 |
-| FR-025 | P0 | Paid-free, fixture-based tests | L1–L11 | QA-018, QA-023 | — | — | Not implemented |
+| FR-024 | P0 | Input validation, safe stable errors | L2–L9 | QA-004, QA-019, QA-020 | — | `web/ApiErrors.java`, `web/RequestIdFilter.java`, DTO + DB checks | Executed and passed: auth + pantry (NaN/Infinity/invalid date → 400, SQL/markup stored as data), UI renders markup as text (`app.test.jsx`), oversized and unmeasured bodies rejected with 413/411 (`AuthTests`, D-047) |
+| FR-025 | P0 | Paid-free, fixture-based tests | L1–L13 | QA-018, QA-023 | — | all test suites | Executed and passed: tests use fixtures, a fake backend, stubs and throwaway Testcontainers databases; no paid service or API key anywhere; QA-023 secret scan clean; QA-018 not applicable (no LLM, D-014) |
 | FR-026 | P0 | CI on push + PR, no deploy [§9] | L1, L12 | QA-024 | — | `.github/workflows/ci.yml` | Executed and passed: push runs pass; on the pull_request trigger (PR 13SunnySingh12/PantryChef#1) a failing test in each module failed all three jobs (run 40819841417), a known-vulnerable dependency failed the backend scan (run 40820080227), and the fixed branch passed (run 40820280614) |
 
 ## Non-functional requirements
 
 | ID | Requirement | Verified by | Status |
 |---|---|---|---|
-| NFR-001 | Secure authn/authz, hashes only | QA-001, QA-003, QA-021 | Authn: Executed and passed; authz per resource pending |
-| NFR-002 | Privacy / sanitized logs | Log review + tests asserting no token/password in logs | Auth paths passed (`logsNeverContainPasswordsOrTokens` + real-run log grep) |
+| NFR-001 | Secure authn/authz, hashes only | QA-001, QA-003, QA-021 | Executed and passed: hashes only, token checks (missing/malformed/forged/expired/foreign), owner-scoped access on every resource (`AuthTests`, `PantryTests`, `ExpiryAlertTests`, `PreferencesTests`, `MealPlanTests`, `DashboardTests`) |
+| NFR-002 | Privacy / sanitized logs | Log review + tests asserting no token/password in logs | Executed and passed: `logsNeverContainPasswordsOrTokens`; Loop 13 clean-run logs contain none of the local secrets, no tokens and no password lines |
 | NFR-003 | Free-core, no paid fallback | QA-018; dependency review | Implemented so far: local embeddings, free sources, no LLM/provider SDK in any manifest; QA-018 n/a while no LLM exists (D-014) |
-| NFR-004 | Local reproducibility | ROAD-033 clean-setup run | Not implemented |
+| NFR-004 | Local reproducibility | ROAD-033 clean-setup run | Executed and passed: fresh clone from GitHub, every module check, full stack started from the README, 4,068 recipes imported, cuisine model retrained to the same score (Loop 13) |
 | NFR-005 | Predictable failures, safe errors | QA-017 | Executed and passed: envelope (`ApiErrorsTests`), AI down/slow/500 → 503/504/502 (`RecipeSuggestionTests` + real run with the AI service stopped), DB outage and missing model → 503 in the AI service |
-| NFR-006 | Maintainability, pinned deps, contracts | Lockfiles, OpenAPI | Not implemented |
+| NFR-006 | Maintainability, pinned deps, contracts | Lockfiles, OpenAPI | Partly: `package-lock.json`, fully pinned `requirements.txt`, Maven versions from the Spring Boot BOM, CI actions pinned to commit SHAs; **no OpenAPI contract** (Not implemented) |
 | NFR-007 | Accessibility | Frontend interaction tests, keyboard pass, Impeccable audit | Executed and passed: labelled fields with linked errors, keyboard focus ring checked in the browser, status as text + icon, contrast ≥ 5.09:1 for every token pair in both themes, charts with text summaries/tables; Impeccable detector clean (static + live login page) |
 | NFR-008 | Responsive usability | Viewport checks (mobile/tablet/desktop) | Executed and passed in the built-in browser at 375×812, 768×1024 and 1280×800 (no horizontal page scroll, 44 px touch targets on touch screens), light and dark |
-| NFR-009 | Measured performance baseline | ROAD-029 | Not implemented |
+| NFR-009 | Measured performance baseline | ROAD-029 | Executed and passed: local baseline recorded (Loop 13); one bottleneck found and fixed (D-046); no SLA claimed |
 | NFR-010 | Data integrity constraints | QA-005, QA-025, DB integration tests | Executed and passed: DB constraints (`SchemaConstraintsTests`) + atomic/locked/idempotent stock events (`PantryTests`, incl. 10-way and 8-way concurrency) |
 | NFR-011 | Honest test status | This file + PROGRESS.md | In effect (process) |
 | NFR-012 | CI without deployment | QA-024; workflow review | Executed and passed: workflow review finds no deploy, publish or release step and only `contents: read`; deliberate-failure runs fail as expected (QA-024) |

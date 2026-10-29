@@ -71,7 +71,10 @@ Then download the sources (about 4 minutes) and import them. The import download
 cd ai-service && .venv/bin/python scripts/fetch_sources.py && .venv/bin/python scripts/import_recipes.py
 ```
 
-Re-running the import is safe: unchanged recipes are not re-embedded.
+Re-running the import is safe: unchanged recipes are not re-embedded. Re-run it whenever
+`database/reference/ingredient_allergens.json` changes: until then, recipes imported with an older dictionary
+version count as allergen-unknown (they are left out for anyone with an allergen exclusion), and the AI service logs
+how many at startup.
 
 To train the cuisine classifier from the same downloads (about 30 seconds; the model file stays in the git-ignored
 `ai-service/models/`, and its metrics card is copied to `ai-service/model_cards/cuisine.json`):

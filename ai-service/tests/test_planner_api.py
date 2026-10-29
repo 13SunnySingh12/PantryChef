@@ -131,3 +131,17 @@ def test_grocery_recalculation_endpoint(client, database):
     bad = http.post("/internal/v1/grocery/compute", headers=headers,
                     json={"recipeIds": ["not-a-uuid"], "pantry": []})
     assert bad.status_code == 400
+
+
+def test_recipes_from_an_older_dictionary_are_never_planned_for_allergen_users(client, database):
+    planned = lambda result: [e["recipeId"] for e in result["entries"] if e.get("recipeId")]  # noqa: E731
+    assert planned(plan(client, [{"name": "rice"}], allergens=["dairy"]))
+    with psycopg.connect(database["owner"]) as conn:
+        conn.execute("UPDATE recipes SET allergen_source = 'PantryChef ingredient dictionary 2026-10-25.1'")
+    try:
+        assert planned(plan(client, [{"name": "rice"}], allergens=["dairy"])) == []
+        assert planned(plan(client, [{"name": "rice"}]))                 # no allergen exclusion: unaffected
+    finally:
+        with psycopg.connect(database["owner"]) as conn:
+            import_recipes(conn, FIXTURES, constant_embed)
+    assert planned(plan(client, [{"name": "rice"}], allergens=["dairy"]))

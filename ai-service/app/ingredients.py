@@ -128,6 +128,12 @@ def dictionary() -> dict:
     return json.loads(DICTIONARY_PATH.read_text(encoding="utf-8"))
 
 
+def allergen_source() -> str:
+    """Stamp stored in recipes.allergen_source at import. Recipes stamped with any other dictionary version count as
+    allergen-unknown until they are re-imported, so an older, less careful dictionary is never trusted."""
+    return f"PantryChef ingredient dictionary {dictionary()['version']}"
+
+
 def allergens_for(key: str) -> tuple[set[str], bool]:
     """(allergen flags, known) for one normalized ingredient. Keywords add flags; only an exact 'known' entry makes
     the ingredient's allergen status known."""

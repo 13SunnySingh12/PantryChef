@@ -6,7 +6,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.importer import import_recipes
-from app.main import app, get_embed
+from app.ingredients import allergen_source
+from app.main import app, count_stale_recipes, get_embed
 from app.sources import parse_mealdb
 from tests.conftest import fake_embed
 
@@ -152,6 +153,23 @@ def test_reimport_is_idempotent(database, loaded):
     assert loaded == {"recipes": 5, "chunks_embedded": 5}
     assert again == {"recipes": 5, "chunks_unchanged": 5}
     assert counts == (5, 5)
+
+
+def test_recipes_from_an_older_dictionary_are_allergen_unknown_until_reimported(client, database):
+    pantry = [{"name": "spinach"}, {"name": "rice"}]
+    assert "Fixture Spinach Rice" in titles(ask(client, pantry, allergens=["dairy"]))
+    with psycopg.connect(database["owner"]) as conn:
+        conn.execute("UPDATE recipes SET allergen_source = 'PantryChef ingredient dictionary 2026-10-25.1'"
+                     " WHERE source_key = 'f2'")
+    stale = ask(client, pantry, allergens=["dairy"])
+    assert "Fixture Spinach Rice" not in titles(stale) and stale.json()["excludedByPreferences"] >= 1
+    assert "Fixture Spinach Rice" in titles(ask(client, pantry))      # no allergen exclusion: unaffected
+    assert count_stale_recipes() == 1                                   # what the startup warning reports
+    with psycopg.connect(database["owner"]) as conn:
+        import_recipes(conn, FIXTURES, fake_embed)
+        assert conn.execute("SELECT count(*) FROM recipes WHERE source_key LIKE 'f%%' AND allergen_source <> %s",
+                            (allergen_source(),)).fetchone() == (0,)
+    assert "Fixture Spinach Rice" in titles(ask(client, pantry, allergens=["dairy"]))
 
 
 def test_service_role_cannot_read_user_data(database):

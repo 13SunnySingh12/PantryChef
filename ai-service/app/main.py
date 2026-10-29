@@ -16,9 +16,17 @@ from app.config import setting
 from app.db import connect
 from app.embeddings import Embed, embed
 from app.grocery import Stock
+from app.ingredients import allergen_source
 from app.retrieval import PantryItem, retrieve
 
 log = logging.getLogger("pantrychef.ai")
+
+
+def count_stale_recipes() -> int:
+    """Recipes imported with another allergen dictionary version; they count as allergen-unknown (D-031)."""
+    with connect() as conn:
+        return conn.execute("SELECT count(*) FROM recipes WHERE allergen_source IS DISTINCT FROM %s",
+                            (allergen_source(),)).fetchone()[0]
 
 
 @asynccontextmanager
@@ -29,6 +37,13 @@ async def lifespan(app: FastAPI):
         await asyncio.to_thread(embed, ["warm up"])
     except Exception as exc:  # noqa: BLE001
         log.warning("Embedding model not loaded at startup: %s", type(exc).__name__)
+    try:
+        stale = await asyncio.to_thread(count_stale_recipes)
+        if stale:
+            log.warning("%d recipes were imported with an older allergen dictionary and count as allergen-unknown "
+                        "until you run scripts/import_recipes.py", stale)
+    except Exception as exc:  # noqa: BLE001
+        log.warning("Could not check recipe allergen data at startup: %s", type(exc).__name__)
     yield
 
 

@@ -22,7 +22,7 @@ from app import eligibility
 from app.config import EMBEDDING_MODEL_ID
 from app.db import vector_literal
 from app.embeddings import Embed, query_text
-from app.ingredients import matches, normalize
+from app.ingredients import allergen_source, matches, normalize
 
 VECTOR_CANDIDATES = 200
 OVERLAP_CANDIDATES = 500
@@ -77,7 +77,8 @@ def retrieve(conn: psycopg.Connection, embed: Embed, pantry: Sequence[PantryItem
             return {"results": [], "excludedByPreferences": 0, "reason": "no_match"}
         recipes = {row[0]: row for row in cur.execute(
             "SELECT id, title, source_name, source_url, source_license, attribution, cuisine, diet_labels,"
-            " allergen_metadata_complete, servings FROM recipes WHERE id = ANY(%s)", (ids,)).fetchall()}
+            " coalesce(allergen_metadata_complete AND allergen_source = %s, false), servings FROM recipes"
+            " WHERE id = ANY(%s)", (allergen_source(), ids)).fetchall()}
         ingredients = {}
         for recipe_id, name, key, flags in cur.execute(
                 "SELECT recipe_id, ingredient_name, normalized_ingredient, allergen_flags FROM recipe_ingredients"

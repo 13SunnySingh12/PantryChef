@@ -7,7 +7,7 @@ source does not provide stays None/empty, and allergen status is derived only vi
 import re
 import urllib.parse
 
-from app.ingredients import allergens_for, contains_meat, dictionary, normalize, parse_quantity
+from app.ingredients import allergen_source, allergens_for, contains_meat, normalize, parse_quantity
 
 WIKIBOOKS_LICENSE = "CC BY-SA 4.0"
 MEALDB_LICENSE = "TheMealDB API terms (development/educational use)"
@@ -101,7 +101,7 @@ def _finish(recipe: dict, ingredients: list[dict], labels: set[str]) -> dict:
         ingredients=ingredients,
         diet_labels=sorted(labels),
         allergen_metadata_complete=complete,
-        allergen_source=f"PantryChef ingredient dictionary {dictionary()['version']}",
+        allergen_source=allergen_source(),
     )
     return recipe
 

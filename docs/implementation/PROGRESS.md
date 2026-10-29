@@ -24,7 +24,9 @@ Legend: `[✓]` completed and verified · `[→]` in progress · `[ ]` pending �
 
 Also fixed: the dashboard test's lazy-loaded chart chunk is now loaded before the timed wait, the likely cause of the one-off frontend failure in Loop 13 (failed on a cold cache, passes after the fix with the cache cleared).
 
-Not covered: the stored database has not been re-imported with the new dictionary (no local database is running); the A-10 date field was checked by tests, not in the browser.
+Follow-up: recipes imported with an older dictionary version now count as allergen-unknown until re-imported (retrieval and planner check `allergen_source`; startup warning with the count; tests `test_recipes_from_an_older_dictionary_*` in retrieval and planner, mutation-checked). No PantryChef database exists on this machine, so there was nothing to re-import here; a fresh import always uses the current dictionary. AI suite 154 passed.
+
+Not covered: the A-10 date field was checked by tests, not in the browser.
 
 ### Loop 13 — Security, clean setup, performance, final review (2026-10-29) `[✓]`
 

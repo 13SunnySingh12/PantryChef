@@ -19,7 +19,7 @@ Reviewed 2026-10-29 against the code on `main`. "Release" here means a verified 
 
 ## Known limitations
 
-- **Allergen safety:** flags come from the sources plus `database/reference/ingredient_allergens.json` (approved 2026-10-29, D-031; flags mean contains or may contain). Recipes with incomplete allergen data are excluded for users with allergen exclusions, so only about 728 of 4,067 recipes are eligible for them. Stored recipes pick up dictionary changes only after a re-import. Cross-contact is not modelled, and the app never claims a recipe is safe.
+- **Allergen safety:** flags come from the sources plus `database/reference/ingredient_allergens.json` (approved 2026-10-29, D-031; flags mean contains or may contain). Recipes with incomplete allergen data are excluded for users with allergen exclusions, so only about 728 of 4,067 recipes are eligible for them. Recipes imported with an older dictionary version count as allergen-unknown until re-imported (fail closed), and the AI service logs how many at startup. Cross-contact is not modelled, and the app never claims a recipe is safe.
 - **Nutrition:** no recipe has nutrition data, so the weekly summary reports "unknown" (D-040).
 - **Waste-risk prediction:** always answers "insufficient data" until real usage history exists (B-03, D-042).
 - **Cuisine classifier:** passes its provisional pass mark (0.5872 against 0.56, D-048) by less than one standard deviation; the held-out split alone scores 0.5326. The mark is derived from a baseline, not from a product requirement. Filipino has 0 F1 on 4 test examples.

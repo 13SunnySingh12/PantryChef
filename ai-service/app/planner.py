@@ -13,7 +13,7 @@ import psycopg
 
 from app import eligibility
 from app.grocery import Stock, compute
-from app.ingredients import matches
+from app.ingredients import allergen_source, matches
 from app.retrieval import WEIGHTS, PantryItem, similarities, usable_keys
 
 PERIODS = ("breakfast", "lunch", "dinner")
@@ -28,11 +28,12 @@ def generate(conn: psycopg.Connection, embed, pantry: Sequence[PantryItem], stoc
     with conn.cursor() as cur:
         similarity = similarities(cur, embed, keys) if keys else {}
         rows = cur.execute(
-            "SELECT r.id, r.title, r.course, r.servings, r.diet_labels, r.allergen_metadata_complete,"
+            "SELECT r.id, r.title, r.course, r.servings, r.diet_labels,"
+            " coalesce(r.allergen_metadata_complete AND r.allergen_source = %s, false),"
             " array_agg(i.normalized_ingredient ORDER BY i.sort_order),"
             " array(SELECT DISTINCT f FROM recipe_ingredients x, unnest(x.allergen_flags) f WHERE x.recipe_id = r.id)"
             " FROM recipes r JOIN recipe_ingredients i ON i.recipe_id = r.id"
-            " WHERE r.course IN ('breakfast', 'main') GROUP BY r.id").fetchall()
+            " WHERE r.course IN ('breakfast', 'main') GROUP BY r.id", (allergen_source(),)).fetchall()
 
     pools: dict[str, list[dict]] = {"breakfast": [], "main": []}
     available = {"breakfast": 0, "main": 0}

@@ -4,7 +4,27 @@ Legend: `[✓]` completed and verified · `[→]` in progress · `[ ]` pending �
 
 ## Current state (2026-10-29)
 
-**All planned loops (L1–L13) complete and verified; see [RELEASE_READINESS.md](RELEASE_READINESS.md). Open decisions for the owner: allergen dictionary review (D-031), plan start date (A-10), cuisine acceptance threshold (TBD-027). Blocked: waste-risk model (B-03, needs real usage history).**
+**All planned loops (L1–L13) complete and verified; D-031, A-10 and TBD-027 decided on 2026-10-29 (see below). Remaining: the cuisine pass mark is provisional (D-048); the waste-risk model is blocked (B-03). See [RELEASE_READINESS.md](RELEASE_READINESS.md).**
+
+### Decisions D-031, A-10, TBD-027 (2026-10-29) `[✓]`
+
+- D-031: allergen dictionary 2026-10-29.1 approved (accent folding, 10 synonyms, may-contain flags, composites unknown, dead entries removed)
+- A-10: optional `startDate` (today … today + 7, APP_TIMEZONE), default today; plan and grocery use the pantry as of the start date; frontend date field
+- TBD-027 / D-048: provisional pass mark 0.56 on cross-validated macro-F1; model 0.5872 ± 0.0303 → PASS; enforced at load
+- Committed locally only (not pushed, per the instruction for this task)
+
+| Check | Result |
+|---|---|
+| `python -m pytest -q` | 152 passed (new: synonyms, false-match, invariant and unknown-ingredient tests; acceptance and shuffled-label tests) |
+| `mvnw.cmd -B verify` | BUILD SUCCESS, 92 tests (new: start-date integration test, `PlanStartDateTests` incl. the UTC/IST date boundary) |
+| `npm run lint` / `npx vitest run` / `npm run build` | clean / 14 passed (new: start-date test) / built |
+| Mutations | accent folding off, a dead entry, `oil` allergen-free, pantry not moved to the start date (generation and recalculation), past-date check off, start date never sent, load gate off: each failed its test → restored |
+| Import dry run | 4,067 recipes; allergen-complete 722 → 728; no non-ASCII keys left |
+| Retrained classifier | C = 10; CV macro-F1 0.5872 ± 0.0303 (25 folds, 0.535–0.632); reference baseline 0.4981; held-out 0.5326, accuracy 0.6032 |
+
+Also fixed: the dashboard test's lazy-loaded chart chunk is now loaded before the timed wait, the likely cause of the one-off frontend failure in Loop 13 (failed on a cold cache, passes after the fix with the cache cleared).
+
+Not covered: the stored database has not been re-imported with the new dictionary (no local database is running); the A-10 date field was checked by tests, not in the browser.
 
 ### Loop 13 — Security, clean setup, performance, final review (2026-10-29) `[✓]`
 
@@ -300,10 +320,10 @@ Not run yet: deliberate-failure CI run (QA-024, planned for L12); pull-request t
 - [✓] L5 Expiry scheduler + alerts (see below)
 - [✓] L6 Preferences + diet/allergen eligibility (see below)
 - [✓] L7 Recipe ingestion + retrieval + suggestions (see below)
-- [!] Review `database/reference/ingredient_allergens.json` (D-031)
+- [✓] Allergen dictionary approved (D-031, 2026-10-29)
 - [✓] L8 Meal plan + grocery list (see below)
 - [✓] Grocery unit conversions approved and implemented (D-038)
-- [!] Confirm A-10 plan start date (day of generation in use)
+- [✓] A-10 confirmed: today by default, optional start date up to 7 days ahead
 - [✓] L9 Dashboard (see below)
 - [!] Decide nutrition data scope (D-040)
 - [✓] L10 Cuisine classifier + waste predictor (see below)
@@ -347,7 +367,8 @@ Tests executed: **none** (no code exists). Git commits/pushes: **none**.
 | 2026-10-29 | Loop 11 frontend |
 | 2026-10-29 | Loop 12 CI dependency scan, PR trigger and deliberate-failure proof |
 | 2026-10-29 | Loop 13 security review, clean setup, performance baseline, release checklist |
+| 2026-10-29 | D-031 dictionary approved, A-10 start date, D-048 cuisine pass mark |
 
 ## Next safe action
 
-No loops remain. Next owner actions: decide D-031, A-10 and TBD-027 (see [RELEASE_READINESS.md](RELEASE_READINESS.md)); B-03 stays blocked until real usage history exists.
+No loops remain. Owner actions: re-import recipes so stored data uses dictionary 2026-10-29.1; replace the provisional cuisine pass mark (D-048) when a product requirement exists; B-03 stays blocked until real usage history exists.

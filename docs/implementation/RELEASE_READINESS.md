@@ -19,11 +19,11 @@ Reviewed 2026-10-29 against the code on `main`. "Release" here means a verified 
 
 ## Known limitations
 
-- **Allergen safety:** allergen flags come from the sources plus `database/reference/ingredient_allergens.json`, which still needs owner review (D-031). Recipes with incomplete allergen data are excluded from suggestions and plans, so only 722 of the 4,067 recipes in the Loop 7 import were allergen-complete. The app never claims a recipe is safe.
+- **Allergen safety:** flags come from the sources plus `database/reference/ingredient_allergens.json` (approved 2026-10-29, D-031; flags mean contains or may contain). Recipes with incomplete allergen data are excluded for users with allergen exclusions, so only about 728 of 4,067 recipes are eligible for them. Stored recipes pick up dictionary changes only after a re-import. Cross-contact is not modelled, and the app never claims a recipe is safe.
 - **Nutrition:** no recipe has nutrition data, so the weekly summary reports "unknown" (D-040).
 - **Waste-risk prediction:** always answers "insufficient data" until real usage history exists (B-03, D-042).
-- **Cuisine classifier:** test macro-F1 0.5156 (D-041); no acceptance threshold has been agreed yet (TBD-027).
-- **Meal-plan start date:** plans start on the day they are generated, the proposed default (A-10).
+- **Cuisine classifier:** passes its provisional pass mark (0.5872 against 0.56, D-048) by less than one standard deviation; the held-out split alone scores 0.5326. The mark is derived from a baseline, not from a product requirement. Filipino has 0 F1 on 4 test examples.
+- **Meal-plan start date:** today by default, or up to 7 days ahead (A-10). The plan uses the pantry as it will be on the start date but does not model items expiring during the week.
 - **Sessions:** the access token is kept in memory only, so reloading the page signs you out (D-008).
 - **End-to-end tests:** the repeatable journey test drives the real frontend against a fake backend; the full stack was exercised by hand in the browser (Loop 11) and by the API baseline (Loop 13). No automated browser test runs against the real stack.
 - **Dependency scanning:** the OSV-Scanner check runs only in CI and does not cover test-scope Java dependencies.
@@ -33,6 +33,5 @@ Reviewed 2026-10-29 against the code on `main`. "Release" here means a verified 
 
 | ID | Decision |
 |---|---|
-| D-031 | Review and approve the ingredient allergen dictionary |
-| A-10 | Confirm the meal-plan start date (generation day in use) |
-| TBD-027 | Set an acceptance threshold for the cuisine classifier |
+| D-048 | Replace the provisional cuisine pass mark with a product requirement when one exists |
+| B-03 | Waste-risk model and its threshold: blocked until real usage history exists |

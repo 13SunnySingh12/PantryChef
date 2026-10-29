@@ -3,7 +3,7 @@
 Writes ai-service/models/cuisine-<version>.joblib and models/cuisine.json (both git-ignored), and copies the model
 card (metrics, class counts, checksums; no model weights) to ai-service/model_cards/cuisine.json for review.
 
-Usage: python scripts/train_cuisine.py
+Usage: python scripts/train_cuisine.py   (exit code 1 when the model fails its acceptance check, D-048)
 """
 
 import json
@@ -30,7 +30,13 @@ def main():
     print(f"classes {len(card['data']['class_counts'])}, split {card['split']}, C={card['chosen_C']}")
     print(f"test macro-F1 {test['macro_f1']} accuracy {test['accuracy']} | majority baseline macro-F1 "
           f"{baseline['test_macro_f1']} accuracy {baseline['test_accuracy']}")
+    check = card["acceptance"]
+    cv = check["cross_validation"]
+    print(f"{check['metric']} ({check['estimate']}): {check['observed']} (sd {cv['model']['sd']}) vs pass mark "
+          f"{check['threshold']} [{check['status']}] | reference baseline {cv['reference_baseline_complement_nb']['mean']}")
+    print("PASS" if check["passed"] else "FAIL: the service will refuse this model until a retrained one passes")
+    return 0 if check["passed"] else 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

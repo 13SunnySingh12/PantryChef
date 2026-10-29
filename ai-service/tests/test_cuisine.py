@@ -84,6 +84,33 @@ def test_model_is_refused_when_missing_tampered_or_from_another_sklearn(trained,
         cuisine.load(tmp_path)
 
 
+def test_acceptance_is_evaluated_recorded_and_enforced_at_load(trained, tmp_path):
+    directory, card = trained
+    check = card["acceptance"]
+    assert check["metric"] == "macro_f1" and check["threshold"] == cuisine.ACCEPTANCE["threshold"]
+    assert check["passed"] is True and check["observed"] == check["cross_validation"]["model"]["mean"]
+    assert check["cross_validation"]["model"]["folds"] == 25
+    assert "reference_baseline_complement_nb" in check["cross_validation"] and check["evaluated"]
+    matrix = card["test"]["confusion_matrix"]
+    assert matrix["labels"] == ["Indian", "Italian", "Mexican"]
+    assert sum(map(sum, matrix["rows_true_columns_predicted"])) == card["split"]["test"]
+    (tmp_path / card["model_file"]).write_bytes((directory / card["model_file"]).read_bytes())
+    below = {**card, "acceptance": {**check, "observed": cuisine.ACCEPTANCE["threshold"] - 0.0001, "passed": True}}
+    for stale in (below, {k: v for k, v in card.items() if k != "acceptance"}):
+        (tmp_path / "cuisine.json").write_text(json.dumps(stale), encoding="utf-8")
+        with pytest.raises(cuisine.ModelUnavailable, match="acceptance"):
+            cuisine.load(tmp_path)
+
+
+def test_a_model_trained_on_shuffled_labels_fails_and_stays_failed():
+    recipes = synthetic()
+    labels = [r["cuisine"] for r in recipes]
+    random.Random(3).shuffle(labels)
+    _, report = cuisine.train([{**r, "cuisine": label} for r, label in zip(recipes, labels, strict=True)])
+    assert report["acceptance"]["passed"] is False
+    assert report["acceptance"]["observed"] < cuisine.ACCEPTANCE["threshold"]
+
+
 @pytest.fixture
 def client(monkeypatch):
     token = "t" * 40

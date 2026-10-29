@@ -7,6 +7,9 @@ disagree, so the same recipe cannot sit in both training and test data. The spli
 
 Predictions carry no probability: the scores are not calibrated, so only a ranked list is returned. Input with no
 ingredient the model has seen gets "unknown" instead of a guess.
+
+Acceptance (TBD-027, D-048): a model is served only if its macro-F1, averaged over 5x5 repeated stratified
+cross-validation, reaches ACCEPTANCE["threshold"]. The card records that check; load() repeats it.
 """
 
 import hashlib
@@ -19,8 +22,9 @@ import joblib
 import sklearn
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import classification_report, f1_score
-from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report, confusion_matrix, f1_score
+from sklearn.model_selection import RepeatedStratifiedKFold, cross_val_score, train_test_split
+from sklearn.naive_bayes import ComplementNB
 from sklearn.pipeline import Pipeline
 
 from app.ingredients import normalize
@@ -29,6 +33,13 @@ MODEL_NAME = "cuisine"
 MIN_CLASS_EXAMPLES = 30
 SEED = 20261029
 C_GRID = (0.3, 1.0, 3.0, 10.0)
+CV_SPLITS, CV_REPEATS = 5, 5
+
+# Provisional pass mark (TBD-027, D-048), fixed on 2026-10-29 before the shipped model was scored: the untuned
+# ComplementNB reference baseline's cross-validated macro-F1 mean + 2 sd (0.4981 + 2 x 0.0292 = 0.5564), rounded up.
+# There is no product requirement yet; raise it, never lower it, to make a model pass.
+ACCEPTANCE = {"metric": "macro_f1", "estimate": f"mean over {CV_REPEATS}x{CV_SPLITS} repeated stratified cross-validation",
+              "threshold": 0.56, "status": "provisional", "decided": "2026-10-29", "decision": "D-048"}
 
 LABEL_ALIASES = {
     "United States": "American", "Southwestern": "American", "Native American": "American", "Canadian": "Canadian",
@@ -89,6 +100,24 @@ def _pipeline(c: float) -> Pipeline:
     ])
 
 
+def _reference_baseline() -> Pipeline:
+    return Pipeline([
+        ("tfidf", TfidfVectorizer(analyzer=_identity, sublinear_tf=True, min_df=2)),
+        ("model", ComplementNB()),
+    ])
+
+
+def _cross_validated(estimator, x, y) -> dict:
+    folds = RepeatedStratifiedKFold(n_splits=CV_SPLITS, n_repeats=CV_REPEATS, random_state=SEED)
+    scores = cross_val_score(estimator, x, y, cv=folds, scoring="f1_macro")
+    return {"mean": round(float(scores.mean()), 4), "sd": round(float(scores.std(ddof=1)), 4),
+            "min": round(float(scores.min()), 4), "max": round(float(scores.max()), 4), "folds": len(scores)}
+
+
+def accepted(observed: float | None) -> bool:
+    return observed is not None and observed >= ACCEPTANCE["threshold"]
+
+
 def train(recipes: list[dict]) -> tuple[Pipeline, dict]:
     """Train on 70%, pick C on 15% validation, report on the untouched 15% test split. Deterministic."""
     x, y, data_report = examples(recipes)
@@ -100,6 +129,8 @@ def train(recipes: list[dict]) -> tuple[Pipeline, dict]:
     best_c = max(C_GRID, key=lambda c: (validation[c], -c))
     model = _pipeline(best_c).fit(x_train, y_train)
     predicted = model.predict(x_test)
+    labels = sorted(set(y))
+    model_cv, baseline_cv = _cross_validated(_pipeline(best_c), x, y), _cross_validated(_reference_baseline(), x, y)
     majority = Counter(y_train).most_common(1)[0][0]
     report = {
         "data": data_report,
@@ -113,7 +144,12 @@ def train(recipes: list[dict]) -> tuple[Pipeline, dict]:
                           for label, m in classification_report(y_test, predicted, output_dict=True,
                                                                 zero_division=0).items()
                           if label in set(y)},
+            "confusion_matrix": {"labels": labels, "rows_true_columns_predicted":
+                                 confusion_matrix(y_test, predicted, labels=labels).tolist()},
         },
+        "acceptance": {**ACCEPTANCE, "observed": model_cv["mean"], "passed": accepted(model_cv["mean"]),
+                       "evaluated": datetime.now(UTC).date().isoformat(),
+                       "cross_validation": {"model": model_cv, "reference_baseline_complement_nb": baseline_cv}},
         "baseline_majority_class": {
             "label": majority,
             "test_macro_f1": round(f1_score(y_test, [majority] * len(y_test), average="macro"), 4),
@@ -154,6 +190,9 @@ def load(directory: Path) -> tuple[Pipeline, dict]:
         raise ModelUnavailable("model file missing or does not match its card")
     if card["scikit_learn"] != sklearn.__version__:
         raise ModelUnavailable("model was trained with a different scikit-learn version")
+    check = card.get("acceptance") or {}
+    if check.get("metric") != ACCEPTANCE["metric"] or not accepted(check.get("observed")):
+        raise ModelUnavailable("model has not passed the acceptance check (D-048)")
     return joblib.load(model_path), card
 
 

@@ -182,3 +182,64 @@ describe('preferences', () => {
     expect(calls.find((c) => c.method === 'PUT').body).toEqual({ diets: ['vegan'], allergens: ['dairy', 'peanuts'] });
   });
 });
+
+describe('journey (ROAD-028)', () => {
+  test('register, add food, see it expiring, plan the week and tick off groceries', { timeout: 30000 }, async () => {
+    // A stateful fake backend: each step only works if the earlier ones sent the right data.
+    const pantry = [];
+    let plan = null;
+    const calls = fakeBackend({
+      'POST /auth/register': [201, { id: 'u1', email: 'new@example.com' }],
+      ...SIGN_IN,
+      'GET /pantry-items': () => [200, structuredClone(pantry)],
+      'POST /pantry-items': (body) => {
+        pantry.push(item({ id: 'i1', name: body.name, quantity: body.quantity, quantityRemaining: body.quantity, unit: body.unit,
+          expiryDate: body.expiryDate, expiryStatus: 'expiring_soon', daysUntilExpiry: 1 }));
+        return [201, structuredClone(pantry[0])];
+      },
+      'GET /expiry-alerts': () => [200, pantry.map((p) => ({ id: `a-${p.id}`, type: 'expiring_soon', alertDate: '2026-10-29', item: p }))],
+      'GET /meal-plans': () => [200, plan ? [{ id: plan.id, startDate: plan.startDate, plannedSlots: 1 }] : []],
+      'POST /meal-plans': () => {
+        plan = { id: 'p1', startDate: '2026-10-29', endDate: '2026-11-04', status: 'partial', createdAt: 'x', groceryCalculatedAt: 'x',
+          disclaimer: 'Always check ingredient labels.',
+          entries: [{ date: '2026-10-29', mealPeriod: 'breakfast', recipeId: 'r1', title: `${pantry[0].name} Omelette`, servings: 2, sourceUrl: 'https://example.org/r1' }],
+          grocery: [{ id: 'g1', ingredient: 'eggs', quantity: 2, unit: 'piece', unresolved: false, checked: false }] };
+        return [201, structuredClone(plan)];
+      },
+      'GET /meal-plans/p1': () => [200, structuredClone(plan)],
+      'PATCH /grocery-items/g1': (body) => {
+        plan.grocery[0].checked = body.checked;
+        return [200, structuredClone(plan.grocery[0])];
+      },
+    });
+    const { user } = await renderApp('/register', { signedIn: false });
+    await user.type(screen.getByLabelText('Email'), 'new@example.com');
+    await user.type(screen.getByLabelText('Password'), 'long enough pw');
+    await user.click(screen.getByRole('button', { name: 'Create account' }));
+
+    await user.click(await screen.findByRole('button', { name: 'Add item' }));
+    const dialog = screen.getByRole('dialog');
+    await user.type(within(dialog).getByLabelText('Name'), 'Spinach');
+    await user.type(within(dialog).getByLabelText('Quantity'), '2');
+    await user.selectOptions(within(dialog).getByLabelText('Unit'), 'bunch');
+    await user.type(within(dialog).getByLabelText('Expiry date (optional)'), '2026-10-30');
+    await user.click(within(dialog).getByRole('button', { name: 'Add item' }));
+    expect(await within(await screen.findByRole('list', { name: 'Pantry items' })).findAllByText('Spinach')).not.toHaveLength(0);
+    expect(calls.find((c) => c.method === 'POST' && c.path === '/pantry-items').body)
+      .toMatchObject({ name: 'Spinach', quantity: 2, unit: 'bunch', expiryDate: '2026-10-30' });
+
+    await user.click(screen.getByRole('link', { name: 'Expiring' }));
+    expect(await screen.findByRole('heading', { name: 'Spinach' })).toBeTruthy();
+    expect(screen.getByText('Expires tomorrow')).toBeTruthy();
+
+    await user.click(screen.getByRole('link', { name: 'Meal plan' }));
+    await user.click(await screen.findByRole('button', { name: 'Plan the next 7 days' }));
+    expect(await screen.findByText('Spinach Omelette')).toBeTruthy();
+    expect(calls.find((c) => c.method === 'POST' && c.path === '/meal-plans').headers['Idempotency-Key']).toBeTruthy();
+
+    const eggs = await screen.findByRole('checkbox', { name: /eggs/ });
+    await user.click(eggs);
+    await waitFor(() => expect(eggs.checked).toBe(true));
+    expect(calls.find((c) => c.method === 'PATCH').body).toEqual({ checked: true });
+  });
+});

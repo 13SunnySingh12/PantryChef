@@ -8,10 +8,6 @@ export function setToken(value) {
   token = value;
 }
 
-export function hasToken() {
-  return token !== null;
-}
-
 export function onSessionExpired(callback) {
   onUnauthorized = callback;
 }

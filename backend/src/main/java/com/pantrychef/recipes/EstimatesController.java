@@ -39,7 +39,8 @@ public class EstimatesController {
 		this.pantry = pantry;
 	}
 
-	public record CuisineRequest(@NotNull @Size(min = 1, max = 100) List<@NotBlank @Size(max = 100) String> ingredients) {
+	public record CuisineRequest(@NotNull @Size(min = 1, max = 100, message = "Enter 1 to 100 ingredients.")
+			List<@NotBlank(message = "Ingredients can't be blank.") @Size(max = 100, message = "Use at most 100 characters per ingredient.") String> ingredients) {
 	}
 
 	@PostMapping("/api/v1/cuisine/classify")

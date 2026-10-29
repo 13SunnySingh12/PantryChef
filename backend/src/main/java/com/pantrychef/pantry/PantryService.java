@@ -113,7 +113,7 @@ public class PantryService {
 	@Transactional
 	public Item update(UUID user, UUID id, ItemInput in, Long expectedVersion) {
 		if (expectedVersion == null) {
-			throw ApiException.invalidField("version", "must not be null");
+			throw ApiException.invalidField("version", "Reload the item and try again.");
 		}
 		String name = checked(in);
 		Item current = find(user, id, true).orElseThrow(ApiException::notFound);
@@ -167,13 +167,13 @@ public class PantryService {
 			String idempotencyKey) {
 		boolean finished = "finished".equals(type);
 		if (finished && quantity != null) {
-			throw ApiException.invalidField("quantity", "must be omitted when finishing an item");
+			throw ApiException.invalidField("quantity", "Leave the amount empty when finishing an item.");
 		}
 		if (!finished && quantity == null) {
-			throw ApiException.invalidField("quantity", "must not be null");
+			throw ApiException.invalidField("quantity", "Enter how much.");
 		}
 		if (idempotencyKey != null && (idempotencyKey.isBlank() || idempotencyKey.length() > 100)) {
-			throw ApiException.invalidField("Idempotency-Key", "must be 1 to 100 characters");
+			throw ApiException.invalidField("Idempotency-Key", "Must be 1 to 100 characters.");
 		}
 		// Lock first, then look for a replay: a retried request waits for the original and then sees its event.
 		Item item = find(user, itemId, true).orElseThrow(ApiException::notFound);
@@ -246,10 +246,10 @@ public class PantryService {
 	/** Cross-field rules the DTO annotations cannot express. Returns the trimmed name. */
 	private String checked(ItemInput in) {
 		if (in.purchaseDate() != null && in.purchaseDate().isAfter(today())) {
-			throw ApiException.invalidField("purchaseDate", "must not be in the future");
+			throw ApiException.invalidField("purchaseDate", "Can't be in the future.");
 		}
 		if (in.expiryDate() != null && in.purchaseDate() != null && in.expiryDate().isBefore(in.purchaseDate())) {
-			throw ApiException.invalidField("expiryDate", "must not be before the purchase date");
+			throw ApiException.invalidField("expiryDate", "Can't be before the purchase date.");
 		}
 		return in.name().strip();
 	}

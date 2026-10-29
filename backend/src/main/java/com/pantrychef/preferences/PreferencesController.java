@@ -39,9 +39,9 @@ public class PreferencesController {
 	}
 
 	public record Preferences(
-			@NotNull @Size(max = 20) List<@NotNull @Pattern(regexp = DIETS, message = "must be a supported diet") String> diets,
+			@NotNull @Size(max = 20) List<@NotNull @Pattern(regexp = DIETS, message = "Choose a diet from the list.") String> diets,
 			@NotNull @Size(max = 20) List<@NotNull @Pattern(regexp = ALLERGENS,
-					message = "must be a supported allergen") String> allergens) {
+					message = "Choose an allergen from the list.") String> allergens) {
 	}
 
 	@GetMapping

@@ -43,11 +43,15 @@ public class PantryController {
 		this.pantry = pantry;
 	}
 
-	public record ItemRequest(@NotBlank @Size(max = 100) String name,
-			@NotNull @Pattern(regexp = Vocabulary.CATEGORIES, message = "must be a supported category") String category,
-			@NotNull @Positive @Digits(integer = 9, fraction = 3) BigDecimal quantity,
-			@NotNull @Pattern(regexp = Vocabulary.UNITS, message = "must be a supported unit") String unit,
-			@PositiveOrZero @Digits(integer = 10, fraction = 2) BigDecimal purchasePrice, LocalDate purchaseDate,
+	public record ItemRequest(
+			@NotBlank(message = "Enter a name.") @Size(max = 100, message = "Use at most 100 characters.") String name,
+			@NotNull(message = "Choose a category.") @Pattern(regexp = Vocabulary.CATEGORIES, message = "Choose a category from the list.") String category,
+			@NotNull(message = "Enter a quantity.") @Positive(message = "Must be more than 0.")
+			@Digits(integer = 9, fraction = 3, message = "Use at most 3 decimal places.") BigDecimal quantity,
+			@NotNull(message = "Choose a unit.") @Pattern(regexp = Vocabulary.UNITS, message = "Choose a unit from the list.") String unit,
+			@PositiveOrZero(message = "Can't be negative.")
+			@Digits(integer = 10, fraction = 2, message = "Use at most 2 decimal places.") BigDecimal purchasePrice,
+			LocalDate purchaseDate,
 			LocalDate expiryDate, Long version) {
 
 		ItemInput input() {
@@ -57,8 +61,9 @@ public class PantryController {
 	}
 
 	public record EventRequest(
-			@NotNull @Pattern(regexp = Vocabulary.EVENT_TYPES, message = "must be used, finished or discarded") String type,
-			@Positive @Digits(integer = 9, fraction = 3) BigDecimal quantity, @Size(max = 500) String notes) {
+			@NotNull(message = "Choose what happened.") @Pattern(regexp = Vocabulary.EVENT_TYPES, message = "Choose used, finished or thrown away.") String type,
+			@Positive(message = "Must be more than 0.") @Digits(integer = 9, fraction = 3, message = "Use at most 3 decimal places.") BigDecimal quantity,
+			@Size(max = 500, message = "Use at most 500 characters.") String notes) {
 	}
 
 	@GetMapping

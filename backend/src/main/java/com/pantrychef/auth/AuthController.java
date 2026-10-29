@@ -79,11 +79,14 @@ public class AuthController {
 		this.dummyHash = passwords.encode(UUID.randomUUID().toString());
 	}
 
-	public record RegisterRequest(@NotBlank @Email @Size(max = 254) String email,
-			@NotNull @Size(min = 8, max = 72) String password) {
+	public record RegisterRequest(
+			@NotBlank(message = "Enter your email address.") @Email(message = "Enter a valid email address.")
+			@Size(max = 254, message = "Use at most 254 characters.") String email,
+			@NotNull(message = "Enter a password.") @Size(min = 8, max = 72, message = "Use 8 to 72 characters.") String password) {
 	}
 
-	public record LoginRequest(@NotBlank @Size(max = 254) String email, @NotBlank @Size(max = 72) String password) {
+	public record LoginRequest(@NotBlank(message = "Enter your email address.") @Size(max = 254) String email,
+			@NotBlank(message = "Enter your password.") @Size(max = 72) String password) {
 	}
 
 	public record UserResponse(UUID id, String email) {
@@ -99,7 +102,7 @@ public class AuthController {
 			throw tooManyRequests();
 		}
 		if (request.password().getBytes(StandardCharsets.UTF_8).length > MAX_PASSWORD_BYTES) {
-			throw ApiException.invalidField("password", "must be at most 72 bytes");
+			throw ApiException.invalidField("password", "Too long: use at most 72 characters (fewer with accents or symbols).");
 		}
 		this.registrations.record(client);
 		String email = normalize(request.email());

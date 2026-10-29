@@ -88,7 +88,7 @@ public class MealPlanService {
 	@SuppressWarnings("unchecked")
 	public Generated generate(UUID user, String idempotencyKey) {
 		if (idempotencyKey != null && (idempotencyKey.isBlank() || idempotencyKey.length() > 100)) {
-			throw ApiException.invalidField("Idempotency-Key", "must be 1 to 100 characters");
+			throw ApiException.invalidField("Idempotency-Key", "Must be 1 to 100 characters.");
 		}
 		Optional<UUID> previous = idempotencyKey == null ? Optional.empty() : planForKey(user, idempotencyKey);
 		if (previous.isPresent()) {

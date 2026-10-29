@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [react()],
   // The browser only talks to the PantryChef backend; in development /api is forwarded to it.
   server: {
-    proxy: { '/api': process.env.PANTRYCHEF_BACKEND_URL || 'http://localhost:8080' },
+    proxy: { '/api': process.env.PANTRYCHEF_BACKEND_URL || 'http://127.0.0.1:8080' },
   },
   test: {
     environment: 'jsdom',

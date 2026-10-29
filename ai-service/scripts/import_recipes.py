@@ -1,6 +1,6 @@
 """Parse the fetched sources, import them into the database and embed them (idempotent; safe to re-run).
 
-Needs INGEST_DATABASE_URL (owner role, e.g. postgresql://pantrychef:<password>@localhost:5440/pantrychef).
+Needs INGEST_DATABASE_URL (owner role, e.g. postgresql://pantrychef:<password>@127.0.0.1:5440/pantrychef).
 Writes ai-service/data/import_report.json (git-ignored) and database/imports/<date>-summary.json (counts and
 checksums only, no recipe text, committed as provenance; not written by --dry-run).
 

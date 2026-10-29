@@ -155,6 +155,8 @@ main {
 }
 
 .page-head p { margin-top: 4px; }
+.plan-form { display: flex; flex-wrap: wrap; align-items: start; gap: 12px; }
+.plan-form .btn { margin-top: 26px; }
 
 .stack { display: grid; gap: 16px; }
 

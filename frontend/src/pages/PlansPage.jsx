@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { ArrowSquareOut } from '@phosphor-icons/react';
 import { api, newRequestKey } from '../api.js';
-import { Empty, ErrorNotice, Loading } from '../ui.jsx';
+import { Empty, ErrorNotice, Field, Loading } from '../ui.jsx';
 import { formatAmount, formatQuantity, useLoad, useToast } from '../shared.js';
 
 const PERIODS = ['breakfast', 'lunch', 'dinner'];
@@ -14,14 +14,17 @@ export default function PlansPage() {
   const [busy, setBusy] = useState(false);
   const [generateError, setGenerateError] = useState(null);
   const [key, setKey] = useState(newRequestKey);
+  const [startDate, setStartDate] = useState('');   // empty: the server uses today (A-10)
   const navigate = useNavigate();
   const shownId = planId ?? plans?.[0]?.id;
 
-  async function generate() {
+  async function generate(event) {
+    event.preventDefault();
     setBusy(true);
     setGenerateError(null);
     try {
-      const plan = await api('/meal-plans', { method: 'POST', headers: { 'Idempotency-Key': key } });
+      const plan = await api('/meal-plans', { method: 'POST', headers: { 'Idempotency-Key': key },
+        body: startDate ? { startDate } : undefined });
       setKey(newRequestKey());
       await reload();
       navigate(`/plans/${plan.id}`);
@@ -38,11 +41,16 @@ export default function PlansPage() {
           <h1>Meal plan</h1>
           <p className="muted">Seven days of breakfast, lunch and dinner, using food that expires soon first.</p>
         </div>
-        <button type="button" className="btn btn-primary" onClick={generate} disabled={busy}>
-          {busy ? 'Planning' : 'Plan the next 7 days'}
-        </button>
+        <form className="plan-form" onSubmit={generate} noValidate>
+          <Field label="Start date (optional)" type="date" value={startDate} hint="Empty means today. Up to 7 days ahead."
+            error={generateError?.fieldErrors?.startDate}
+            onChange={(e) => { setStartDate(e.target.value); setKey(newRequestKey()); }} />
+          <button type="submit" className="btn btn-primary" disabled={busy}>
+            {busy ? 'Planning' : 'Plan 7 days'}
+          </button>
+        </form>
       </div>
-      <ErrorNotice error={error || generateError} />
+      <ErrorNotice error={error || (generateError?.fieldErrors?.startDate ? null : generateError)} />
       {loading && !plans && <Loading />}
       {plans && plans.length === 0 && (
         <Empty title="No meal plan yet">

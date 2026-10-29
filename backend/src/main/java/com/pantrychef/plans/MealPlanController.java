@@ -1,5 +1,6 @@
 package com.pantrychef.plans;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -36,10 +37,16 @@ public class MealPlanController {
 	public record CheckRequest(@NotNull Boolean checked) {
 	}
 
+	/** Optional body (A-10); no body or no startDate means today in APP_TIMEZONE. */
+	public record GenerateRequest(LocalDate startDate) {
+	}
+
 	@PostMapping("/api/v1/meal-plans")
 	ResponseEntity<Plan> generate(@AuthenticationPrincipal Jwt token,
-			@RequestHeader(name = "Idempotency-Key", required = false) String idempotencyKey) {
-		Generated result = this.plans.generate(CurrentUser.id(token), idempotencyKey);
+			@RequestHeader(name = "Idempotency-Key", required = false) String idempotencyKey,
+			@RequestBody(required = false) GenerateRequest request) {
+		Generated result = this.plans.generate(CurrentUser.id(token), idempotencyKey,
+				request == null ? null : request.startDate());
 		return ResponseEntity.status(result.replayed() ? HttpStatus.OK : HttpStatus.CREATED).body(result.plan());
 	}
 

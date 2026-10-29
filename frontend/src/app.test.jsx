@@ -150,8 +150,38 @@ describe('meal plan', () => {
   });
 });
 
+describe('meal plan start date (A-10)', () => {
+  test('no date sends no body, a chosen date is sent as typed, and a server error shows under the field', async () => {
+    let attempt = 0;
+    const calls = fakeBackend({ ...SIGN_IN, 'GET /meal-plans': [200, []],
+      'POST /meal-plans': () => (++attempt === 1
+        ? [400, { error: { code: 'VALIDATION_ERROR', message: 'Check the highlighted fields and try again.',
+          fieldErrors: { startDate: 'Choose a date within the next 7 days.' } } }]
+        : [201, { id: 'p9' }]),
+      'GET /meal-plans/p9': [200, { id: 'p9', startDate: '2026-11-02', endDate: '2026-11-08', status: 'complete', entries: [], grocery: [],
+        disclaimer: 'x', createdAt: 'x', groceryCalculatedAt: 'x' }] });
+    const { user } = await renderApp('/plans');
+    const date = await screen.findByLabelText('Start date (optional)');
+    await user.type(date, '2026-12-25');
+    await user.click(screen.getByRole('button', { name: 'Plan 7 days' }));
+    expect(await screen.findByText('Choose a date within the next 7 days.')).toBeTruthy();
+    expect(date.getAttribute('aria-invalid')).toBe('true');
+    const first = calls.filter((c) => c.method === 'POST' && c.path === '/meal-plans')[0];
+    expect(first.body).toEqual({ startDate: '2026-12-25' });
+
+    await user.clear(date);
+    await user.click(screen.getByRole('button', { name: 'Plan 7 days' }));
+    await waitFor(() => expect(calls.filter((c) => c.method === 'POST' && c.path === '/meal-plans')).toHaveLength(2));
+    const second = calls.filter((c) => c.method === 'POST' && c.path === '/meal-plans')[1];
+    expect(second.body).toBeUndefined();
+    expect(second.headers['Idempotency-Key']).not.toBe(first.headers['Idempotency-Key']);
+  });
+});
+
 describe('dashboard', () => {
   test('reports nutrition as unknown and offers the chart data as a table', { timeout: 30000 }, async () => {
+    // The page is lazy-loaded; on a cold run transforming the chart library can outlast findBy's wait, so load it first.
+    await import('./pages/DashboardPage.jsx');
     fakeBackend({ ...SIGN_IN, 'GET /dashboard/summary': [200, {
       window: { from: '2026-10-28', to: '2026-10-29', timezone: 'Asia/Kolkata' }, currency: 'INR',
       foodSaved: { items: 1, events: 1, quantities: [{ unit: 'g', amount: 200 }], usedAfterExpiry: 1, usedWithoutExpiryDate: 0 },
@@ -233,7 +263,7 @@ describe('journey (ROAD-028)', () => {
     expect(screen.getByText('Expires tomorrow')).toBeTruthy();
 
     await user.click(screen.getByRole('link', { name: 'Meal plan' }));
-    await user.click(await screen.findByRole('button', { name: 'Plan the next 7 days' }));
+    await user.click(await screen.findByRole('button', { name: 'Plan 7 days' }));
     expect(await screen.findByText('Spinach Omelette')).toBeTruthy();
     expect(calls.find((c) => c.method === 'POST' && c.path === '/meal-plans').headers['Idempotency-Key']).toBeTruthy();
 

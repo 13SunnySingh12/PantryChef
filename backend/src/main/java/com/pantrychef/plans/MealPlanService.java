@@ -38,6 +38,9 @@ public class MealPlanService {
 
 	static final int DAYS = 7;
 
+	/** Covers both options recorded for A-10: today and the next Monday. */
+	static final int MAX_LEAD_DAYS = 7;
+
 	static final String REMOVED_BY_CHECK = "A proposed recipe failed the safety re-check and was left out.";
 
 	private final JdbcClient db;
@@ -84,17 +87,21 @@ public class MealPlanService {
 	public record Generated(Plan plan, boolean replayed) {
 	}
 
-	/** Creates a plan starting today (APP_TIMEZONE). A repeated idempotency key returns the original plan. */
+	/**
+	 * Creates a plan starting on {@code requestedStart}, or today in APP_TIMEZONE when it is null (A-10). The plan uses
+	 * the pantry as it will be on the start date. A repeated idempotency key returns the original plan.
+	 */
 	@SuppressWarnings("unchecked")
-	public Generated generate(UUID user, String idempotencyKey) {
+	public Generated generate(UUID user, String idempotencyKey, LocalDate requestedStart) {
 		if (idempotencyKey != null && (idempotencyKey.isBlank() || idempotencyKey.length() > 100)) {
 			throw ApiException.invalidField("Idempotency-Key", "Must be 1 to 100 characters.");
 		}
+		LocalDate start = startDate(requestedStart, this.dates.today());
 		Optional<UUID> previous = idempotencyKey == null ? Optional.empty() : planForKey(user, idempotencyKey);
 		if (previous.isPresent()) {
 			return new Generated(get(user, previous.get()), true);
 		}
-		List<Usable> stock = this.pantry.usableStock(user);
+		List<Usable> stock = this.pantry.usableStock(user, start);
 		Preferences prefs = this.preferences.load(user);
 		Map<String, Object> answer = this.ai.post("/internal/v1/meal-plans/generate",
 				Map.of("pantry", stock, "diets", prefs.diets(), "allergens", prefs.allergens(), "days", DAYS));
@@ -107,7 +114,6 @@ public class MealPlanService {
 		boolean removedAny = slots.stream().anyMatch((s) -> s.get("recipeId") != null && !isSafe(s, safe));
 		Map<String, Object> grocery = removedAny ? groceryFor(safe, stock)
 				: (Map<String, Object>) answer.get("grocery");
-		LocalDate start = this.dates.today();
 		UUID planId = this.tx.execute((status) -> {
 			boolean complete = slots.stream().allMatch((s) -> isSafe(s, safe));
 			Optional<UUID> created = this.db
@@ -145,7 +151,9 @@ public class MealPlanService {
 		Plan plan = get(user, planId);
 		Set<UUID> recipes = new HashSet<>();
 		plan.entries().stream().filter((e) -> e.recipeId() != null).forEach((e) -> recipes.add(e.recipeId()));
-		Map<String, Object> grocery = groceryFor(recipes, this.pantry.usableStock(user));
+		LocalDate today = this.dates.today();
+		LocalDate asOf = plan.startDate().isAfter(today) ? plan.startDate() : today;
+		Map<String, Object> grocery = groceryFor(recipes, this.pantry.usableStock(user, asOf));
 		this.tx.executeWithoutResult((status) -> {
 			Set<String> checked = new HashSet<>(this.db
 				.sql("SELECT normalized_ingredient || '|' || coalesce(unit, '') FROM grocery_items"
@@ -158,6 +166,20 @@ public class MealPlanService {
 			this.db.sql("UPDATE meal_plans SET grocery_calculated_at = now() WHERE id = ?").param(planId).update();
 		});
 		return get(user, planId);
+	}
+
+	/** A-10: today by default; never in the past, at most {@link #MAX_LEAD_DAYS} days ahead. */
+	static LocalDate startDate(LocalDate requested, LocalDate today) {
+		if (requested == null) {
+			return today;
+		}
+		if (requested.isBefore(today)) {
+			throw ApiException.invalidField("startDate", "Can't be in the past.");
+		}
+		if (requested.isAfter(today.plusDays(MAX_LEAD_DAYS))) {
+			throw ApiException.invalidField("startDate", "Choose a date within the next " + MAX_LEAD_DAYS + " days.");
+		}
+		return requested;
 	}
 
 	public GroceryItem setChecked(UUID user, UUID itemId, boolean checked) {

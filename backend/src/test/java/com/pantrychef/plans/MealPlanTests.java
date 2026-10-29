@@ -209,6 +209,56 @@ class MealPlanTests {
 				+ "\"grocery\":{\"items\":" + groceryItems + ",\"coveredByPantry\":[]}}";
 	}
 
+	@Test
+	void aChosenStartDateMovesEverySlotAndUsesThePantryAsOfThatDay() throws Exception {
+		LocalDate today = LocalDate.now(ZoneId.of("Asia/Kolkata"));
+		LocalDate start = today.plusDays(3);
+		datedItem("Milk", today.plusDays(1));   // gone by the start date
+		datedItem("Spinach", today.plusDays(5)); // 2 days left on the start date
+		AI.answer(GENERATE, 200, plan(this.safeRecipe, null, "[]"));
+		String body = this.mvc.perform(post("/api/v1/meal-plans").header("Authorization", this.alice)
+			.contentType(MediaType.APPLICATION_JSON).content("{\"startDate\":\"" + start + "\"}"))
+			.andExpect(status().isCreated())
+			.andExpect(jsonPath("$.startDate").value(start.toString()))
+			.andExpect(jsonPath("$.endDate").value(start.plusDays(6).toString()))
+			.andExpect(jsonPath("$.entries.length()").value(21))
+			.andExpect(jsonPath("$.entries[0].date").value(start.toString()))
+			.andExpect(jsonPath("$.entries[20].date").value(start.plusDays(6).toString()))
+			.andReturn().getResponse().getContentAsString();
+		String sent = AI.requests(GENERATE).get(0);
+		assertThat((List<Object>) JsonPath.read(sent, "$.pantry[*].name")).containsExactly("Spinach");
+		assertThat((List<Object>) JsonPath.read(sent, "$.pantry[*].daysToExpiry")).containsExactly(2);
+		this.mvc.perform(get("/api/v1/meal-plans").header("Authorization", this.alice))
+			.andExpect(jsonPath("$[0].startDate").value(start.toString()));
+		AI.answer(GROCERY, 200, "{\"items\":[]}");
+		this.mvc.perform(post("/api/v1/meal-plans/" + JsonPath.read(body, "$.id") + "/grocery-recalculation")
+			.header("Authorization", this.alice)).andExpect(status().isOk());
+		assertThat((List<Object>) JsonPath.read(AI.requests(GROCERY).get(0), "$.pantry[*].name")).containsExactly("Spinach");
+
+		for (String bad : new String[] { today.minusDays(1).toString(), today.plusDays(8).toString() }) {
+			this.mvc.perform(post("/api/v1/meal-plans").header("Authorization", this.alice)
+				.contentType(MediaType.APPLICATION_JSON).content("{\"startDate\":\"" + bad + "\"}"))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.error.fieldErrors.startDate").exists());
+		}
+		this.mvc.perform(post("/api/v1/meal-plans").header("Authorization", this.alice)
+			.contentType(MediaType.APPLICATION_JSON).content("{\"startDate\":\"2026-02-30\"}"))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.error.code").value("MALFORMED_REQUEST"));
+		this.mvc.perform(post("/api/v1/meal-plans").header("Authorization", this.alice)
+			.contentType(MediaType.APPLICATION_JSON).content("{\"startDate\":\"" + today.plusDays(7) + "\"}"))
+			.andExpect(status().isCreated());
+		assertThat(AI.requests(GENERATE)).hasSize(2); // invalid dates never reached the planner
+	}
+
+	private void datedItem(String name, LocalDate expiry) throws Exception {
+		this.mvc.perform(post("/api/v1/pantry-items").header("Authorization", this.alice)
+			.contentType(MediaType.APPLICATION_JSON)
+			.content("{\"name\":\"" + name + "\",\"category\":\"other\",\"quantity\":1,\"unit\":\"piece\",\"expiryDate\":\""
+					+ expiry + "\"}"))
+			.andExpect(status().isCreated());
+	}
+
 	private ResultActions generate(String token, String key) throws Exception {
 		var request = post("/api/v1/meal-plans").header("Authorization", token);
 		return this.mvc.perform(key == null ? request : request.header("Idempotency-Key", key));

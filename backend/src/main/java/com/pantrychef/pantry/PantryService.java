@@ -69,14 +69,18 @@ public class PantryService {
 	}
 
 	public List<Usable> usableStock(UUID user) {
-		LocalDate today = today();
+		return usableStock(user, today());
+	}
+
+	/** Stock still usable on {@code day} (not expired by then), with days to expiry counted from that day. */
+	public List<Usable> usableStock(UUID user, LocalDate day) {
 		return this.db
 			.sql("SELECT name, expiry_date, quantity_remaining, unit FROM pantry_items WHERE user_id = ?"
 					+ " AND deleted_at IS NULL AND quantity_remaining > 0 AND (expiry_date IS NULL OR expiry_date >= ?)"
 					+ " ORDER BY id")
-			.params(user, today)
+			.params(user, day)
 			.query((rs, n) -> new Usable(rs.getString("name"),
-					Expiry.daysUntil(rs.getObject("expiry_date", LocalDate.class), today),
+					Expiry.daysUntil(rs.getObject("expiry_date", LocalDate.class), day),
 					rs.getBigDecimal("quantity_remaining"), rs.getString("unit")))
 			.list();
 	}
